@@ -1,21 +1,14 @@
-import parse_openpose_json
 import normalising
 import prepocessing
 import affine_transformation
 import pose_comparison
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-
 #Takes two parameters, model name and input name.
 #Both have a .json file in json_data and a .jpg or .png in image_data
-def single_person(model_file_name, input_file_name):
-    # Read openpose output and parse body-joint points into an 2D array of 18 rows
-    # Elke entry is een coordinatenkoppel(joint-point) in 3D , z-coordinaat wordt nul gekozen want we werken in 2D
-    model_features = parse_openpose_json.parse_JSON_single_person(model_file_name)
-    input_features = parse_openpose_json.parse_JSON_single_person(input_file_name)
+def single_person(model_features, input_features):
 
     #Normalise features: crop => delen door Xmax & Ymax (NIEUWE MANIER!!)
     model_features = normalising.cut(model_features)
@@ -59,18 +52,13 @@ def single_person(model_file_name, input_file_name):
 #Plot the calculated transformation on the model image
 #And some other usefull plots for debugging
 #NO NORMALIZING IS DONE HERE BECAUSE POINTS ARE PLOTTED ON THE ORIGINAL PICTURES!
-def plot_single_person(model_json, input_json, model_image_name, input_image_name):
+def plot_single_person(model_features, input_features, model_image_name, input_image_name):
     # plot vars
     markersize = 3
 
     #Load images
     model_image = plt.imread(model_image_name)
     input_image = plt.imread(input_image_name)
-
-    # Read openpose output and parse body-joint points into an 2D array of 18 rows
-    # Elke entry is een coordinatenkoppel(joint-point) in 3D , z-coordinaat wordt nul gekozen want we werken in 2D
-    model_features = parse_openpose_json.parse_JSON_single_person(model_json)
-    input_features = parse_openpose_json.parse_JSON_single_person(input_json)
 
     # Split features in three parts
     (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features)
@@ -111,4 +99,19 @@ def plot_single_person(model_json, input_json, model_image_name, input_image_nam
     ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
 
     plt.show()
+
+'''
+Description:
+This function is used in case:
+    1. the human poses in the image have no relation with each other and they are considered separately 
+
+Parameters:
+@:param models_features: Takes an array as model input because every pose that needs to be mimic has it's own model
+@:param input_features: The input is one json file. This represents an image of multiple persons that try to mimic one of the poses in model
+'''
+def multi_person(models_features, input_features):
+
+
+
+    return
 

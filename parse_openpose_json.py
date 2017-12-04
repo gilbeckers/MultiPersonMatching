@@ -11,7 +11,6 @@ def parse_JSON_single_person(filename):
 
     #18 3D coordinatenkoppels (joint-points)
     array = numpy.zeros((18,3))
-
     arrayIndex = 0
     for i in range(0, len(keypointsPeople1), 3):
         array[arrayIndex][0] = keypointsPeople1[i]
@@ -19,3 +18,26 @@ def parse_JSON_single_person(filename):
         arrayIndex+=1
 
     return array
+
+#Limited to 4 persons for now
+def parse_JSON_multi_person(filename):
+    with open(filename) as data_file:
+        data = json.load(data_file)
+
+    list_of_features = []
+
+    keypoints = data["people"]
+    for k in range(0, len(keypoints)):
+        person_keypoints = keypoints[k]["pose_keypoints"]
+
+        # 18 3D coordinatenkoppels (joint-points)
+        array = numpy.zeros((18, 3))
+        arrayIndex = 0
+        for i in range(0, len(person_keypoints), 3):
+            array[arrayIndex][0] = person_keypoints[i]
+            array[arrayIndex][1] = person_keypoints[i + 1]
+            arrayIndex += 1
+        list_of_features.append(array)
+
+    return list_of_features
+
