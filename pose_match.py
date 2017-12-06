@@ -11,19 +11,22 @@ logger = logging.getLogger(__name__)
 
 class MatchCombo(object):
 
-    def __init__(self, error_score, input_id, model_id, input_transformation):
+    def __init__(self, error_score, input_id, model_id, model_features, input_features, input_transformation):
         self.error_score = error_score
         self.input_id = input_id
         self.model_id = model_id
+        self.model_features = model_features # niet noodzaakelijk voor logica, wordt gebruikt voor plotjes
+        self.input_features = input_features # same
         self.input_transformation = input_transformation
 
 #Takes two parameters, model name and input name.
 #Both have a .json file in json_data and a .jpg or .png in image_data
-def single_person(model_features, input_features):
+def single_person(model_features, input_features, normalise):
 
     #Normalise features: crop => delen door Xmax & Ymax (NIEUWE MANIER!!)
-    model_features = normalising.cut(model_features)
-    input_features = normalising.cut(input_features)
+    if(normalise):
+        model_features = normalising.cut(model_features)
+        input_features = normalising.cut(input_features)
 
     #Split features in three parts
     (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features)
@@ -43,12 +46,12 @@ def single_person(model_features, input_features):
 
 
     ######### THE THRESHOLDS #######
-    eucl_dis_tresh_torso = 0.05
-    rotation_tresh_torso = 18
-    eucl_dis_tresh_legs = 0.0395
-    rotation_tresh_legs = 14
+    eucl_dis_tresh_torso = 0.06
+    rotation_tresh_torso = 55
+    eucl_dis_tresh_legs = 0.14
+    rotation_tresh_legs = 40
 
-    eucld_dis_shoulders_tresh = 0.035
+    eucld_dis_shoulders_tresh = 0.06
     ################################
 
     result_torso = pose_comparison.decide_torso_shoulders_incl(max_euclidean_error_torso, transformation_matrix_torso,
@@ -60,8 +63,7 @@ def single_person(model_features, input_features):
     #TODO: construct a solid score algorithm
     error_score = (max_euclidean_error_torso + max_euclidean_error_legs)/2.0
 
-    #TODO: wrap transformation of input back in one whole matrix
-    input_transformation = np.zeros(2)
+    input_transformation = prepocessing.unsplit(input_transformed_face, input_transformed_torso, input_transformed_legs)
     return ( (result_torso and result_legs), error_score, input_transformation)
 
 
@@ -91,27 +93,20 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
     implot = ax1.imshow(model_image)
     ax1.set_title(model_image_name + '(model)')
-    ax1.plot(*zip(*model_torso), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    ax1.plot(*zip(*model_legs), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    ax1.plot(*zip(*model_face), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+    ax1.plot(*zip(*model_features), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
     red_patch = mpatches.Patch(color='red', label='model')
     ax1.legend(handles=[red_patch])
 
     ax2.set_title(input_image_name)
     ax2.imshow(input_image)
-    ax2.plot(*zip(*input_torso), marker='o', color='b', ls='', ms=markersize)
-    ax2.plot(*zip(*input_legs), marker='o', color='b', ls='', ms=markersize)
-    ax2.plot(*zip(*input_face), marker='o', color='b', ls='', ms=markersize)
+    ax2.plot(*zip(*input_features), marker='o', color='b', ls='', ms=markersize)
     ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
 
+    whole_input_transform = prepocessing.unsplit(input_transformed_face, input_transformed_torso, input_transformed_legs)
     ax3.set_title('Transformation of input + model')
     ax3.imshow(model_image)
-    ax3.plot(*zip(*model_torso), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    ax3.plot(*zip(*model_legs), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    ax3.plot(*zip(*model_face), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    ax3.plot(*zip(*input_transformed_torso), marker='o', color='y', ls='', ms=markersize)
-    ax3.plot(*zip(*input_transformed_legs), marker='o', color='y', ls='', ms=markersize)
-    ax3.plot(*zip(*input_transformed_face), marker='o', color='y', ls='', ms=markersize)
+    ax3.plot(*zip(*model_features), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+    ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
     ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
 
     plt.show()
@@ -128,7 +123,7 @@ Parameters:
 @:param models_poses: Takes an array of models as input because every pose that needs to be mimic has it's own model
 @:param input_poses: The input is one json file. This represents an image of multiple persons and they each try to mimic one of the poses in model
 '''
-def multi_person(models_poses, input_poses):
+def multi_person(models_poses, input_poses, model_image_name, input_image_name):
     logger.info(" Multi-person matching...")
     logger.info(" amount of models: %d", len(models_poses))
     logger.info(" amount of inputs: %d", len(input_poses))
@@ -161,25 +156,31 @@ def multi_person(models_poses, input_poses):
 
         for model_pose in models_poses:
             # Do single pose matching
-            (result_match, error_score, input_transformation) = single_person(model_pose, input_pose)
+            (result_match, error_score, input_transformation) = single_person(model_pose, input_pose, True)
 
             if (result_match):
-                match_combo = MatchCombo(error_score, counter_input_pose, counter_model_pose, input_transformation)
+                match_combo = MatchCombo(error_score, counter_input_pose, counter_model_pose, model_pose, input_pose, input_transformation)
                 logger.info(" Match: %s InputPose(%d)->ModelPose(%d)", result_match, counter_input_pose, counter_model_pose)
 
                 # If current MatchCombo object is empty, init it
                 if best_match_combo is None:
                     best_match_combo = match_combo
-                # If new match is better than current best_match, overwrite
+                # If new match is better (=has a lower error_score) than current best_match, overwrite
                 elif best_match_combo.error_score > match_combo.error_score:
                     best_match_combo = match_combo
 
             counter_model_pose = counter_model_pose + 1
 
-        # If still no match is found (after looping over all the models); break and report a global matching failure
+        # If still no match is found (after looping over all the models); this input is not found in proposed modelposes
+        # This can mean two thins:
+        #   1. The user failed to mimic on of the proposed model poses
+        #   2. This inputpose describes someone in the background,
+        #       in which case this pose is considered as background noise
+        #       and should not influence the global matching result
+
         if(best_match_combo  is None):
-            logger.info(" MATCH FAILED. No match found for inputpose(%d). Quiting multi_person_matching, further inputposes are not considered ", counter_input_pose)
-            return False
+            logger.info(" MATCH FAILED. No match found for inputpose(%d). User either failed to match a modelpose or this inputpose is background noise", counter_input_pose)
+            #return False
 
         # After comparing every possible models with a inputpose, append to match_list
         list_of_all_matches.append(best_match_combo)
@@ -192,6 +193,38 @@ def multi_person(models_poses, input_poses):
     for i in list_of_all_matches:
         if i is not None:
             print("jeej: " , i.input_id , "best match: " , i.model_id)
-
+            (result, error_score, input_transformation) = single_person(i.model_features, i.input_features, False)
+            print("transss: " , input_transformation)
+            plot_match(i.model_features, i.input_features, input_transformation, model_image_name, input_image_name)
     return True
 
+def plot_match(model_features, input_features, input_transform_features, model_image_name, input_image_name):
+    # plot vars
+    markersize = 3
+
+    # Load images
+    model_image = plt.imread(model_image_name)
+    input_image = plt.imread(input_image_name)
+
+    plt.figure()
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
+    implot = ax1.imshow(model_image)
+    ax1.set_title(model_image_name + '(model)')
+    ax1.plot(*zip(*model_features), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+    red_patch = mpatches.Patch(color='red', label='model')
+    ax1.legend(handles=[red_patch])
+
+    ax2.set_title(input_image_name)
+    ax2.imshow(input_image)
+    ax2.plot(*zip(*input_features), marker='o', color='b', ls='', ms=markersize)
+    ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
+
+    ax3.set_title('Transformation of input + model')
+    ax3.imshow(model_image)
+    ax3.plot(*zip(*model_features), marker='o', color='y', ls='', label='model', ms=markersize)  # ms = markersize
+    ax3.plot(*zip(*input_transform_features), marker='o', color='b', ls='', ms=markersize)
+    ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
+
+    plt.show()
+
+    return
