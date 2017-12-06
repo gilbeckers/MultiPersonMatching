@@ -1,17 +1,17 @@
 import pose_match
 import parse_openpose_json
-
-
+import numpy as np
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 json_data_path = 'data/json_data/'
 images_data_path = 'data/image_data/'
 
-
-
 '''
----- MULTI PERSON ----
+-------------------- MULTI PERSON -------------------------------------
 '''
-model = "jochen_rob"
-input = "jochen_foto1"
+model = "jochen_foto1"
+input = "jochen_rob"
 
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
@@ -20,14 +20,21 @@ model_image = images_data_path + model + '.jpg'
 input_image = images_data_path + input + '.jpg'
 
 model_features = parse_openpose_json.parse_JSON_multi_person(model_json)
-input_features = parse_openpose_json.parse_JSON_single_person(input_json)
 
+#input_features = parse_openpose_json.parse_JSON_single_person(input_json)
+input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
 
 
 '''
 Calculate match fo real (incl. normalizing)
 '''
-pose_match.multi_person(model_features, model_features)
+model1 = model_features[0]
+models_array = [np.array(model1)]
+#model2 = model_features[1]
+#models_array = [np.array(model1), np.array(model2)]
+
+
+pose_match.multi_person(models_array, input_features)
 
 '''
 Calculate match + plot the whole thing
@@ -37,7 +44,7 @@ Calculate match + plot the whole thing
 
 
 '''
------ SINGLE PERSON ---
+-------------------------------- SINGLE PERSON -------------------------------------------
 Read openpose output and parse body-joint points into an 2D array of 18 rows
 Elke entry is een coordinatenkoppel(joint-point) in 3D , z-coordinaat wordt nul gekozen want we werken in 2D
 '''
