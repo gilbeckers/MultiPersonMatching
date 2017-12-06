@@ -19,7 +19,6 @@ def parse_JSON_single_person(filename):
 
     return array
 
-#Limited to 4 persons for now
 def parse_JSON_multi_person(filename):
     with open(filename) as data_file:
         data = json.load(data_file)

@@ -102,14 +102,29 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
 
 '''
 Description:
-This function is used in case:
-    1. the human poses in the image have no relation with each other and they are considered separately 
+This function is used in the first (simple) case: MODELS SEPARATELY 
+    The human poses in the image have no relation with each other and they are considered separately 
+    Foreach input pose (in input_features) a matching model pose (in models_features) is searched
+    Only if for each input model matches with on of the models in models_features, a global match is achieved. 
 
 Parameters:
-@:param models_features: Takes an array as model input because every pose that needs to be mimic has it's own model
-@:param input_features: The input is one json file. This represents an image of multiple persons that try to mimic one of the poses in model
+@:param models_poses: Takes an array of models as input because every pose that needs to be mimic has it's own model
+@:param input_poses: The input is one json file. This represents an image of multiple persons and they each try to mimic one of the poses in model
 '''
-def multi_person(models_features, input_features):
+def multi_person(models_poses, input_poses):
+
+    #Iterate over the input poses
+    counter_input_pose = 1
+    for input_pose in input_poses:
+        counter_model_pose = 1
+        for model_pose in models_poses:
+            if (single_person(model_pose, input_pose)):
+                print("Match: ", single_person(model_pose, input_pose), "Inputpose(", counter_input_pose, ')->Modelpose(', counter_model_pose, ')')
+                break
+
+            counter_model_pose = counter_model_pose + 1
+        counter_input_pose = counter_input_pose + 1
+
 
 
 

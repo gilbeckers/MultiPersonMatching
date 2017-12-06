@@ -28,11 +28,11 @@ def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix
                 return True
             else:
                 if(config.DEBUG_PRINT):
-                    print("!!!!!TORO NO MATCH Schouder error te groot!!!!")
+                    print("!!!!!TORSO NO MATCH Schouder error te groot!!!!")
 
         # Geen match
         if (config.DEBUG_PRINT):
-            print("TORO NO MATCH ")
+            print("#TORSOO NO MATCH#")
         return False
 
 
@@ -63,7 +63,7 @@ def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix
 
     # Geen match
     if (config.DEBUG_PRINT):
-        print("\tTORO NO MATCH ")
+        print("\t#TORSO NO MATCH#")
     return False
 
 def decide_legs(max_error, transformation_matrix, eucld_tresh, rotation_tresh):
