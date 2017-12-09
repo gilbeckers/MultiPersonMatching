@@ -8,6 +8,6 @@ def split_in_face_legs_torso(features):
     return (face, torso, legs)
 
 def unsplit(face, torso, legs):
-    whole = np.vstack([face[0], torso, legs, face[14:18]])
+    whole = np.vstack([face[0], torso, legs, face[1:5]])
 
     return whole

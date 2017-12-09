@@ -35,7 +35,6 @@ models_array = [np.array(model1), np.array(model2)]
 pose_match.multi_person(models_array, input_features, model_image, input_image)
 
 
-
 '''
 -------------------------------- SINGLE PERSON -------------------------------------------
 Read openpose output and parse body-joint points into an 2D array of 18 rows
