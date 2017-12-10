@@ -119,12 +119,16 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
 Description multi_person():
 This function is used in the first (simple) case: MODELS SEPARATELY (mutual orientation of different poses is not checked in this simple case)
     The human poses in the image have no relation with each other and they are considered separately 
-    Foreach input pose (in input_features) a matching model pose (in models_features) is searched
-    Only if for each input model matches with on of the models in models_features, a global match is achieved. 
+    Foreach modelpose (in models_poses) a matching inputpose (in input_poses) is searched
+    Only if for each modelpose matches with on of the inputposes in input_poses, a global match is achieved. 
 
 Parameters:
 @:param models_poses: Takes an array of models as input because every pose that needs to be mimic has it's own model
 @:param input_poses: The input is one json file. This represents an image of multiple persons and they each try to mimic one of the poses in model
+
+Returns:
+@:returns None : in case GLOBAL MATCH FAILED
+@:returns list_of_all_matches : (List of MatchCombo objects) each model 1 match with a input (this match is wrapped in a MatchCombo object)
 '''
 # THE NEW one: for every modelpose , a matching input is seeked
 # Enkel zo kan je een GLOBAL MATCH FAILED besluiten na dat er geen matching inputpose is gevonden voor een modelpose
@@ -190,15 +194,12 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
             counter_input_pose = counter_input_pose + 1
 
         # If still no match is found (after looping over all the inputs); this model is not found in proposed inputposes
-        # This can mean two things:
+        # This can mean only one thing:
         #   1. The user failed to mimic on of the proposed model poses
-        #   2. (FOUT)  MAG WEG DIT? This inputpose describes someone in the background,
-        #       in which case this pose is considered as background noise
-        #       and should not influence the global matching result
 
         if(best_match_combo  is None):
             logger.info(" MATCH FAILED. No match found for modelpose(%d). User failed to match a modelpose ", counter_model_pose)
-            #return False
+            return False
 
         # After comparing every possible models with a inputpose, append to match_list
         list_of_all_matches.append(best_match_combo)
@@ -229,7 +230,8 @@ Parameters:
 @:param models_poses: Takes an array of models as input because every pose that needs to be mimic has it's own model
 @:param input_poses: The input is one json file. This represents an image of multiple persons and they each try to mimic one of the poses in model
 '''
-# THe old one: for every input pose , a matching model is seeked
+# THE OLD ONE: for every input pose , a matching model is seeked  => mag weg
+@DeprecationWarning
 def multi_person_old(models_poses, input_poses, model_image_name, input_image_name):
     logger.info(" Multi-person matching...")
     logger.info(" amount of models: %d", len(models_poses))

@@ -11,3 +11,7 @@ def unsplit(face, torso, legs):
     whole = np.vstack([face[0], torso, legs, face[1:5]])
 
     return whole
+
+def unpad(matrix):
+
+    return matrix[:, :-1]
