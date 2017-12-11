@@ -1,7 +1,8 @@
 import numpy as np
 
 def split_in_face_legs_torso(features):
-    torso = features[2:8]
+    # torso = features[2:8]   #zonder nek
+    torso = features[1:8]   #met nek
     legs = features[8:14]
     face = np.vstack([features[0], features[14:18]])
 

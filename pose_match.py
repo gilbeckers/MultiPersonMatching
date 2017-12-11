@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import logging
 import numpy as np
+import proc_do_it
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +47,12 @@ def single_person(model_features, input_features, normalise):
 
 
     ######### THE THRESHOLDS #######
-    eucl_dis_tresh_torso = 0.06
-    rotation_tresh_torso = 55
-    eucl_dis_tresh_legs = 0.14
+    eucl_dis_tresh_torso = 0.065
+    rotation_tresh_torso = 40
+    eucl_dis_tresh_legs = 0.055
     rotation_tresh_legs = 40
 
-    eucld_dis_shoulders_tresh = 0.06
+    eucld_dis_shoulders_tresh = 0.63
     ################################
 
     result_torso = pose_comparison.decide_torso_shoulders_incl(max_euclidean_error_torso, transformation_matrix_torso,
@@ -319,7 +320,27 @@ def multi_person_old(models_poses, input_poses, model_image_name, input_image_na
 '''
 This function is used in the second (complex) case: The models are dependent ofeach other in space
 '''
-def multi_person2():
+def multi_person2(model_poses, input_poses, model_image_name, input_image_name):
+    result = multi_person(model_poses, input_poses, model_image_name, input_image_name)
+
+    if(result is False):
+        logger.info("Multi-person step1 match failed!")
+        return False
+
+    input_transformed_combined = []
+
+
+    #else, result is a list with the matches.
+    for match in result:
+        #logger.info(str(match.input_id) + "   " + str(match.model_id))
+        input_transformed = proc_do_it.superimpose(match.input_features, match.model_features, input_image_name, model_image_name)
+
+        input_transformed_combined.append(np.array(input_transformed))
+
+
+
+
+
 
 
     return
