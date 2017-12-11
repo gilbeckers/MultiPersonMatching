@@ -22,7 +22,7 @@ def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix
         if (max_euclid_distance_torso <= eucld_tresh and rot_max <= rotation_tresh):
 
             # Checken of schouders niet te veel afwijken
-            if (max_euclid_distance_shoulders < shoulder_thresh):
+            if (max_euclid_distance_shoulders > shoulder_thresh):
                 logger.debug("\t ->#TORSO MATCH#")
                 return True
             else:
@@ -50,7 +50,7 @@ def decide_legs(max_error, transformation_matrix, eucld_tresh, rotation_tresh):
         return True
 
     #Geen match
-    logger.debug("#\t ->LEGS NO-MATCH#")
+    logger.debug("\t ->#LEGS NO-MATCH#")
     return False
 
 
@@ -59,7 +59,9 @@ def max_euclidean_distance_shoulders(model_torso, input_transformed_torso):
 
     euclDis_torso = ((maxError_torso[:, 0]) ** 2 + maxError_torso[:, 1] ** 2) ** 0.5
 
-    maxError_shoulder = max([euclDis_torso[0], euclDis_torso[3]])
+    # Opgelet!! als nek er niet in zit is linker schouder = index 0 en rechterschouder = index 3
+    # indien nek incl = > index 1 en index 4
+    maxError_shoulder = max([euclDis_torso[1], euclDis_torso[4]])
     return maxError_shoulder
 
 def max_euclidean_distance(model, transformed_input):
