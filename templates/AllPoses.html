@@ -1,0 +1,85 @@
+
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>bajart</title>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+        <script  type="text/javascript">
+
+            $(document).ready(function () {
+              console.log('ready')
+              $.ajax({
+                  dataType: "json",
+                  url: "http://1dr8.be/getAllPoses",
+                  //url: "http://bajart.mariekerke.be/index.php/get",
+                  //url: "http://localhost:8000/index.php/get",
+                  success: function (response) {
+                      console.log(response);
+                      var html = ""
+                      var count =0
+                      response.forEach(function (item) {
+                          html += " <div class='pure-u-7-24 l-box'> \n\
+                           <div id='schoen' class='schoen'>\n\
+                          <table class='pure-table'> \n\
+                           <thead>\n\
+                          <h5> pose id is " + item.naam + "</h5>\n\
+                           </thead>\n\
+                          <tbody>\n\
+                           <tr>\n\
+                                <img class='image pure-img' src='data:image/jpg;base64," + item.foto + "'/> \n\
+                          </tr>\n\
+                          </tbody>\n\
+                      </table></div></div>\n\
+                      ";
+                      count++;
+                      });
+                      $("#schoenen").empty();
+                      $("#schoenen").append(html)
+                  }
+              });
+            });
+
+        </script>
+        <style>
+            select {
+                border: 0 none;
+                color: #00000;
+                background: transparent;
+                font-size: 20px;
+                font-weight: bold;
+                padding: 2px 10px;
+                *background: #003c9e;
+            }
+
+
+            .l-box {
+                padding: 1em;
+            }
+            .hide {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="displayer">
+
+            <div id="schoenen" class="pure-g">
+
+            </div>
+
+        </div>
+        <div id ="fullscreen" class="hide">
+            <image id="fullscreenimg" class="pure-img">
+            <p>druk nogmaals op de foto om terug te gaan.</p>
+        </div>
+
+    </body>
+</html>
