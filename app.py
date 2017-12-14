@@ -124,10 +124,12 @@ def findmatch(filename, id):
     filename = filename.rsplit('.')[0]
     inputadr = "/home/jochen/fotos/json/"+filename +'_keypoints.json'
     modeladr = "/home/jochen/dataset/poses/pose"+id+"/json/1.json"
-    model = readOpenPoseJson.readJsonFile(modeladr)
-    input = readOpenPoseJson.readJsonFile(inputadr)
-    #parameters van functie zijn slecht gekozen => secondary = input  &&   primary = model
-    result = pose_matcher.is_match(model, input)
+    model_features = parse_openpose_json.parse_JSON_single_person(model_json)
+    input_features = parse_openpose_json.parse_JSON_single_person(input_json)
+
+    input_features = prepocessing.unpad(input_features)
+    model_features = prepocessing.unpad(model_features)
+    (result, error_score, input_transform) = pose_match.single_person(model_features, input_features, True)
     print("Match or not: ", result)
     with open(inputadr) as json_file:
         json_decoded = json.load(json_file)
