@@ -22,7 +22,7 @@ def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix
         if (max_euclid_distance_torso <= eucld_tresh and rot_max <= rotation_tresh):
 
             # Checken of schouders niet te veel afwijken
-            if (max_euclid_distance_shoulders > shoulder_thresh):
+            if (max_euclid_distance_shoulders <= shoulder_thresh):
                 logger.debug("\t ->#TORSO MATCH#")
                 return True
             else:

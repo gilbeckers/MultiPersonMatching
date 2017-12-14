@@ -5,7 +5,6 @@ def find_transformation(model_features, input_features):
     # 2x2 matrix werkt niet voor translaties
 
     # Pad the data with ones, so that our transformation can do translations too
-    n = model_features.shape[0]
     pad = lambda x: np.hstack([x, np.ones((x.shape[0], 1))])  # horizontaal stacken
     unpad = lambda x: x[:, :-1]
 

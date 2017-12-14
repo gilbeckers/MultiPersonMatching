@@ -22,7 +22,7 @@ class MatchCombo(object):
 
 #Takes two parameters, model name and input name.
 #Both have a .json file in json_data and a .jpg or .png in image_data
-def single_person(model_features, input_features, normalise):
+def single_person(model_features, input_features, normalise=True):
     # Normalise features: crop => delen door Xmax & Ymax (NIEUWE MANIER!!)
     if (normalise):
         model_features = normalising.cut(model_features)
@@ -52,7 +52,7 @@ def single_person(model_features, input_features, normalise):
     eucl_dis_tresh_legs = 0.055
     rotation_tresh_legs = 40
 
-    eucld_dis_shoulders_tresh = 0.63
+    eucld_dis_shoulders_tresh = 0.063
     ################################
 
     result_torso = pose_comparison.decide_torso_shoulders_incl(max_euclidean_error_torso, transformation_matrix_torso,
@@ -94,24 +94,28 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
                                                                                                        input_torso)
     (input_transformed_legs, transformation_matrix_legs) = affine_transformation.find_transformation(model_legs,
                                                                                                      input_legs)
+
+
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
     implot = ax1.imshow(model_image)
-    ax1.set_title(model_image_name + '(model)')
-    ax1.plot(*zip(*model_features), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+    #ax1.set_title(model_image_name + ' (model)')
+    ax1.set_title('(model)')
+    ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     red_patch = mpatches.Patch(color='red', label='model')
-    ax1.legend(handles=[red_patch])
+    #ax1.legend(handles=[red_patch])
 
-    ax2.set_title(input_image_name)
+    #ax2.set_title(input_image_name + ' (input)')
+    ax2.set_title('(input)')
     ax2.imshow(input_image)
-    ax2.plot(*zip(*input_features), marker='o', color='b', ls='', ms=markersize)
-    ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
+    ax2.plot(*zip(*input_features), marker='o', color='r', ls='', ms=markersize)
+    #ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
 
     whole_input_transform = prepocessing.unsplit(input_transformed_face, input_transformed_torso, input_transformed_legs)
     ax3.set_title('Transformation of input + model')
     ax3.imshow(model_image)
-    ax3.plot(*zip(*model_features), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+    ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
-    ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
+    #ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
 
     plt.show()
 
@@ -128,7 +132,7 @@ Parameters:
 @:param input_poses: The input is one json file. This represents an image of multiple persons and they each try to mimic one of the poses in model
 
 Returns:
-@:returns None : in case GLOBAL MATCH FAILED
+@:returns False : in case GLOBAL MATCH FAILED
 @:returns list_of_all_matches : (List of MatchCombo objects) each model 1 match with a input (this match is wrapped in a MatchCombo object)
 '''
 # THE NEW one: for every modelpose , a matching input is seeked
@@ -139,7 +143,7 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
     logger.info(" amount of inputs: %d", len(input_poses))
     # Some safety checks first ..
     if(len(input_poses)== 0 or len(models_poses) == 0):
-        logger.info(" Multi person match failed. Inputposes or modelposes are empty")
+        logger.error(" Multi person match failed. Inputposes or modelposes are empty")
         return False
 
     # Then check if there are equal or more input poses than model poses
@@ -148,14 +152,15 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
     #       -> ex in case of people on the background which are also detected by openpose => background noise
     #       -> TODO: ? foreground detection necessary (in case less models than there are inputs)  NOT SURE ...
     if(len(input_poses) < len(models_poses)):
-        logger.info(" Multi person match failed. Amount of input poses < model poses")
+        logger.error(" Multi person match failed. Amount of input poses < model poses")
         return False
 
     # When there are more inputposes than modelsposes, print warning
     # I this case pose match still needs to proceed,
     #  BUT it's possible that a background pose is matched with one of the proposed modelposes!! (something we don't want)
     if (len(input_poses) > len(models_poses)):
-        logger.info(" !! WARNING !! Amount of input poses > model poses")
+        logger.warning(" !! WARNING !! Amount of input poses > model poses")
+        #Continiue
         #return False
 
     # List of MatchCombo objects: each model has a 0 or 1 or more matches with a input (this match is wrapped in a MatchCombo object)
@@ -196,7 +201,7 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
 
         # If still no match is found (after looping over all the inputs); this model is not found in proposed inputposes
         # This can mean only one thing:
-        #   1. The user failed to mimic on of the proposed model poses
+        #   1. The user(s) failed to mimic one of the proposed model poses
 
         if(best_match_combo  is None):
             logger.info(" MATCH FAILED. No match found for modelpose(%d). User failed to match a modelpose ", counter_model_pose)
@@ -210,56 +215,88 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
         counter_model_pose = counter_model_pose + 1
 
 
+    # Plotjes: affine transformation is calculated again but now without normalisation
     for i in list_of_all_matches:
         if i is not None:
-            #print("jeej: " , i.input_id , "best match: " , i.model_id)
             (result, error_score, input_transformation) = single_person(i.model_features, i.input_features, False)
-            #print("transss: " , input_transformation)
-
             plot_match(i.model_features, i.input_features, input_transformation, model_image_name, input_image_name)
 
     return list_of_all_matches
 
 
 '''
+Description multi_person2()
 This function is used in the second (complex) case: The models are dependent of each other in space
+Their relation in space is checked in the same way as in case of single_pose(), 
+    but now a affine transformation of the total of all poses is calculated
+
+First a multi_pose() is executed and a list of best_matches is achieved
+Then all separate input poses are combined into one input_pose_transformed
+    This is the homography of all model poses displayed onto their best match inputpose.
+    -> The modelpose is superimposed onto his matching inputpose
+    This homography is calculated using only a translation and rotation, NO SCALING
+Note that the input_transformed resulting from single_pose() is not used in this algorithm.
+
+Parameters:
+@:param model_poses: Model containing multiple modelposes (one json file = one image because poses are seen as one whole) 
+@:param input_poses: The input is one json file. This represents an image of multiple persons and 
+                        together they try to mimic the whole model. 
+
+Returns:
+@:returns False : in case GLOBAL MATCH FAILED
+@:returns True : Match! 
 '''
 def multi_person2(model_poses, input_poses, model_image_name, input_image_name):
+
+    # Find for each model_pose the best match input_pose
+    # returns a list of best matches
     result = multi_person(model_poses, input_poses, model_image_name, input_image_name)
 
     if(result is False):
-        logger.info("Multi-person step1 match failed!")
+        # Minimum one model pose is not matched with a input pose
+        logger.error("Multi-person step1 match failed!")
         return False
 
+    # The new input_transformed; contains all poses and wrapped in one total pose.
+    # This input_transformed_combined is achieved by superimposing all the model poses on their corresponding inputpose
     input_transformed_combined = []
 
-
-    #else, result is a list with the matches.
-    for match in result:
-        #logger.info(str(match.input_id) + "   " + str(match.model_id))
-        input_transformed = proc_do_it.superimpose(match.input_features, match.model_features, input_image_name, model_image_name)
+    # Loop over the best-matches
+    #       [modelpose 1 -> inputpose x ; modelpose2 -> inputpose y; ...]
+    for best_match in result:
+        input_transformed = proc_do_it.superimpose(best_match.input_features, best_match.model_features, input_image_name, model_image_name)
         input_transformed_combined.append(np.array(input_transformed))
 
-    input_transformed_combined = np.vstack([input_transformed_combined[0], input_transformed_combined[1]])
-    input_transformed_combined = prepocessing.pad(input_transformed_combined)
-    model_poses = np.vstack([model_poses[0],model_poses[1]])
-
-    assert len(input_transformed_combined) == len(model_poses)
     logger.info("size input: " + str(len(input_transformed_combined)))
     logger.info("size model: " + str(len(model_poses)))
+    assert len(input_transformed_combined) == len(model_poses)
 
+    # TODO: harded code indexen weg doen
+    # TODO: transpose van ne lijst? Mss beter toch met np.array() werken..  maar hoe init'en?
+    assert len(input_transformed_combined) >= 2
+    # Transpose matrix
+    input_transformed_combined = np.vstack([input_transformed_combined[0], input_transformed_combined[1]])
+    model_poses = np.vstack([model_poses[0], model_poses[1]]) #TODO waaarom moet da hier getransposed worden LOL ? zit ergens foutje in preprocessing
+    input_poses = np.vstack([input_poses[0], input_poses[1]])
+
+    # Pad with ones so our affine transformation can also do translations
+    input_transformed_combined = prepocessing.pad(input_transformed_combined)
+
+    # Calc the affine trans of the whole
     (full_transformation, A_matrix) = affine_transformation.find_transformation(model_poses, input_transformed_combined)
     #logger.info("trans: %s", full_transformation)
+
+    plot_match(model_poses, input_poses, full_transformation, model_image_name, input_image_name)
     plot_match(model_poses, input_transformed_combined, full_transformation, model_image_name, input_image_name)
 
-    return
+    return True
 
 
 
 #Plots all Three: model, input and transformation
 def plot_match(model_features, input_features, input_transform_features, model_image_name, input_image_name):
     # plot vars
-    markersize = 3
+    markersize = 1
 
     # Load images
     model_image = plt.imread(model_image_name)
@@ -267,21 +304,21 @@ def plot_match(model_features, input_features, input_transform_features, model_i
 
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
     implot = ax1.imshow(model_image)
-    ax1.set_title(model_image_name + '(model)')
-    ax1.plot(*zip(*model_features), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    red_patch = mpatches.Patch(color='red', label='model')
-    ax1.legend(handles=[red_patch])
+    ax1.set_title('(model)')
+    ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    red_patch = mpatches.Patch(color='magenta', label='model')
+    #ax1.legend(handles=[red_patch])
 
-    ax2.set_title(input_image_name)
+    ax2.set_title('(input)')
     ax2.imshow(input_image)
-    ax2.plot(*zip(*input_features), marker='o', color='b', ls='', ms=markersize)
-    ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
+    ax2.plot(*zip(*input_features), marker='o', color='red', ls='', ms=markersize)
+    #ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
 
-    ax3.set_title('Transformation of input + model')
+    ax3.set_title('Transformed input on model')
     ax3.imshow(model_image)
-    #ax3.plot(*zip(*model_features), marker='o', color='y', ls='', label='model', ms=markersize)  # ms = markersize
-    ax3.plot(*zip(*input_transform_features), marker='o', color='magenta', ls='', ms=markersize)
-    ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
+    ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    ax3.plot(*zip(*input_transform_features), marker='o', color='blue', ls='', ms=markersize)
+    ax3.legend(handles=[mpatches.Patch(color='magenta', label='Model'), mpatches.Patch(color='blue', label='Input transformed')])
 
     plt.show()
 
