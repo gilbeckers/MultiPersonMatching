@@ -33,10 +33,14 @@ models_array = [np.array(model1), np.array(model2)]
 models_array = model_features
 
 #Simple case; poses are not checked on relation in space
-pose_match.multi_person(models_array, input_features, model_image, input_image)
+#pose_match.multi_person(models_array, input_features, model_image, input_image)
 
-#Second case; poses ARE checked on relation in space
-#pose_match.multi_person2(models_array, input_features, model_image, input_image)
+#Second case; poses ARE checked on relation in space WITH NORMALISATION
+pose_match.multi_person2(models_array, input_features, model_image, input_image) # with normalisation
+
+#Second case; poses ARE checked on relation in space ZONDER NORMALISATION
+# -> Plotjesssss
+pose_match.multi_person2(models_array, input_features, model_image, input_image,False) # without normalisation
 
 '''
 -------------------------------- SINGLE PERSON -------------------------------------------

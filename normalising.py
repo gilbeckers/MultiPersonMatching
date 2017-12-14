@@ -2,7 +2,7 @@ import numpy as np
 
 
 #Cut pose out of image
-def cut(input):
+def feature_scaling(input):
     xmax = max(input[:, 0])
     ymax = max(input[:, 1])
 
@@ -18,6 +18,10 @@ def cut(input):
     output = np.vstack([sec_x, sec_y]).T
 
     return output
+
+def feature_scaling_multi_person():
+
+    return
 
 
 def divide_by_max(input):

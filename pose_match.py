@@ -25,8 +25,8 @@ class MatchCombo(object):
 def single_person(model_features, input_features, normalise=True):
     # Normalise features: crop => delen door Xmax & Ymax (NIEUWE MANIER!!)
     if (normalise):
-        model_features = normalising.cut(model_features)
-        input_features = normalising.cut(input_features)
+        model_features = normalising.feature_scaling(model_features)
+        input_features = normalising.feature_scaling(input_features)
 
     #Split features in three parts
     (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features)
@@ -237,16 +237,20 @@ Then all separate input poses are combined into one input_pose_transformed
     This homography is calculated using only a translation and rotation, NO SCALING
 Note that the input_transformed resulting from single_pose() is not used in this algorithm.
 
+Final plots are only plotted if normalised is False
+
 Parameters:
 @:param model_poses: Model containing multiple modelposes (one json file = one image because poses are seen as one whole) 
 @:param input_poses: The input is one json file. This represents an image of multiple persons and 
                         together they try to mimic the whole model. 
+@:param normalise: Default is True. In case of False; the max euclidean distance is calculated and reported
+                    In case of True; the result in plotted on the images! 
 
 Returns:
 @:returns False : in case GLOBAL MATCH FAILED
 @:returns True : Match! 
 '''
-def multi_person2(model_poses, input_poses, model_image_name, input_image_name):
+def multi_person2(model_poses, input_poses, model_image_name, input_image_name, normalise=True):
 
     # Find for each model_pose the best match input_pose
     # returns a list of best matches
@@ -264,6 +268,7 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name):
     # Loop over the best-matches
     #       [modelpose 1 -> inputpose x ; modelpose2 -> inputpose y; ...]
     for best_match in result:
+        #Note: the input_transformed from single_pose() is not used!!!
         input_transformed = proc_do_it.superimpose(best_match.input_features, best_match.model_features, input_image_name, model_image_name)
         input_transformed_combined.append(np.array(input_transformed))
 
@@ -274,7 +279,8 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name):
     # TODO: harded code indexen weg doen
     # TODO: transpose van ne lijst? Mss beter toch met np.array() werken..  maar hoe init'en?
     assert len(input_transformed_combined) >= 2
-    # Transpose matrix
+
+    #Lijst vervormen naar matrix
     input_transformed_combined = np.vstack([input_transformed_combined[0], input_transformed_combined[1]])
     model_poses = np.vstack([model_poses[0], model_poses[1]]) #TODO waaarom moet da hier getransposed worden LOL ? zit ergens foutje in preprocessing
     input_poses = np.vstack([input_poses[0], input_poses[1]])
@@ -282,12 +288,20 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name):
     # Pad with ones so our affine transformation can also do translations
     input_transformed_combined = prepocessing.pad(input_transformed_combined)
 
+    if(normalise):
+        input_transformed_combined = normalising.feature_scaling(input_transformed_combined)
+        model_poses = normalising.feature_scaling(model_poses)
+
     # Calc the affine trans of the whole
     (full_transformation, A_matrix) = affine_transformation.find_transformation(model_poses, input_transformed_combined)
     #logger.info("trans: %s", full_transformation)
 
-    plot_match(model_poses, input_poses, full_transformation, model_image_name, input_image_name)
-    plot_match(model_poses, input_transformed_combined, full_transformation, model_image_name, input_image_name)
+    if(normalise):
+        max_eucl_distance = pose_comparison.max_euclidean_distance(model_poses, input_transformed_combined)
+        logger.info("Max eucl distance: %s  (thresh ca. 0.13)", str(max_eucl_distance))
+    else:
+        plot_match(model_poses, input_poses, full_transformation, model_image_name, input_image_name)
+        plot_match(model_poses, input_transformed_combined, full_transformation, model_image_name, input_image_name)
 
     return True
 
