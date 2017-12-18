@@ -1,22 +1,28 @@
 import numpy as np
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 #Cut pose out of image
 def feature_scaling(input):
+    #logger.info("inn: %s" , str(input))
+    # We accept the presence of (0,0) points in the input poses (undetected body-parts)
+    # But we don't want them to influence our normalisation
+
+    # Here it's considered that (0,y) and (x,0) don't exists
+    # because the chance is sooooo small
     xmax = max(input[:, 0])
     ymax = max(input[:, 1])
 
-    xmin = min(input[:, 0])
-    ymin = min(input[:, 1])
+    xmin = np.min(input[np.nonzero(input[:,0])]) #np.nanmin(input[:, 0])
+    ymin = np.min(input[np.nonzero(input[:,1])]) #np.nanmin(input[:, 1])
 
     sec_x = (input[:, 0]-xmin)/(xmax-xmin)
     sec_y = (input[:, 1]-ymin)/(ymax-ymin)
 
-    #sec_x = (input[:, 0]) / (xmax)
-    #sec_y = (input[:, 1]) / (ymax)
-
     output = np.vstack([sec_x, sec_y]).T
-
+    output[output<0] = 0
+    #logger.info("out: %s", str(output))
     return output
 
 def feature_scaling_multi_person():

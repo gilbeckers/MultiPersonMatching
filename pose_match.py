@@ -20,10 +20,55 @@ class MatchCombo(object):
         self.input_features = input_features # same
         self.input_transformation = input_transformation
 
-#Takes two parameters, model name and input name.
-#Both have a .json file in json_data and a .jpg or .png in image_data
+'''
+Description single_person():
+Takes two parameters, model name and input name.
+Both have a .json file in json_data and a .jpg or .png in image_data
+
+Parameters:
+@:param model_features: 
+@:param input_features: 
+
+Returns:
+@:returns result matching
+@:returns error_score
+@:returns input_transformation
+'''
 def single_person(model_features, input_features, normalise=True):
+    # First, some safety checks ...
+    # Each model must be a valid model, this means no Openpose errors (=a undetected body-part) are allowed
+    #  -> models with undetected bodyparts are unvalid
+    #  -> undetected body-parts are labeled by (0,0)
+    if np.any(model_features[:] == [0,0]):
+        logger.error(" Unvalid model pose, undetected body-parts")
+        return False
+
+    # Input is allowed to have a certain amount of undetected body parts
+    # In that case, the corresponding point from the model is also changed to (0,0)
+    #   -> afterwards matching can still proceed
+    #
+    # !! NOTE !! : the acceptation and introduction of (0,0) points
+    # is a danger for our current normalisation
+    # These particular orgin points should not influence the normalisation
+    # (which they do if we neglect them, xmin and ymin you know...)
+    if np.any(input_features[:] == [0,0]):
+        counter = 0
+        for feature in input_features:
+            if feature[0] == 0 and feature[1] == 0:  # (0,0)
+                logger.info(" Undetected body part in input: index(%d) %s", counter, prepocessing.get_bodypart(counter))
+                model_features[counter][0] = 0#np.nan
+                model_features[counter][1] = 0#np.nan
+                input_features[counter][0] = 0#np.nan
+                input_features[counter][1] = 0#np.nan
+            counter = counter+1;
+
+
+
+    assert len(model_features) == len(input_features)
+
     # Normalise features: crop => delen door Xmax & Ymax (NIEUWE MANIER!!)
+    # !Note!: as state above, care should be taken when dealing with (0,0) points
+    # during normalisation
     if (normalise):
         model_features = normalising.feature_scaling(model_features)
         input_features = normalising.feature_scaling(input_features)
@@ -38,6 +83,8 @@ def single_person(model_features, input_features, normalise=True):
     (input_transformed_face, transformation_matrix_face) = affine_transformation.find_transformation(model_face, input_face)
     (input_transformed_torso, transformation_matrix_torso) = affine_transformation.find_transformation(model_torso, input_torso)
     (input_transformed_legs, transformation_matrix_legs) = affine_transformation.find_transformation(model_legs, input_legs)
+
+    print("sizeee: ", input_features.shape)
 
     max_euclidean_error_face = pose_comparison.max_euclidean_distance(model_face, input_transformed_face)
     max_euclidean_error_torso = pose_comparison.max_euclidean_distance(model_torso, input_transformed_torso)
