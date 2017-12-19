@@ -17,8 +17,8 @@ This is done with a translation and a rotation an again a translation in the y d
 '''
 def superimpose(input, model, input_image, model_image):
 
-    input = prepocessing.unpad(input)
-    model = prepocessing.unpad(model)
+    #input = prepocessing.unpad(input)
+    #model = prepocessing.unpad(model)
 
     # First translation and rotation, NO SCALING
     (d, Z, m) = procrustes(input, model, False) #Scaling is false

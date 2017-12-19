@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("pose_match")
 
 #Cut pose out of image
 def feature_scaling(input):
@@ -9,8 +9,9 @@ def feature_scaling(input):
     # We accept the presence of (0,0) points in the input poses (undetected body-parts)
     # But we don't want them to influence our normalisation
 
-    # Here it's considered that (0,y) and (x,0) don't exists
-    # because the chance is sooooo small
+    # Here it's assumed that (0,y) and (x,0) don't occur
+    # Is a acceptable assumption because the chance is sooooo small
+    #   that a feature is positioned just right on the x or y axis
     xmax = max(input[:, 0])
     ymax = max(input[:, 1])
 

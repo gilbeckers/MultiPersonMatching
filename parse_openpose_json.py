@@ -38,7 +38,7 @@ def parse_JSON_multi_person(filename):
         person_keypoints = keypoints[k]["pose_keypoints"]
 
         # 18 3D coordinatenkoppels (joint-points)
-        array = numpy.zeros((18, 3))
+        array = numpy.zeros((18, 2))
         arrayIndex = 0
         for i in range(0, len(person_keypoints), 3):
             array[arrayIndex][0] = person_keypoints[i]

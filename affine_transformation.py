@@ -1,4 +1,6 @@
 import numpy as np
+import logging
+logger = logging.getLogger("pose_match")
 
 def find_transformation(model_features, input_features):
     # Zoek 2D affine transformatie matrix om scaling, rotatatie en translatie te beschrijven tussen model en input
@@ -48,7 +50,7 @@ def find_transformation(model_features, input_features):
     transform = lambda x: unpad(np.dot(pad(x), A))
     input_transform = transform(input_features)
     # Restore the (0,0) rows
-    # TODO: maybe tomutch looping ..
+    # TODO: maybe too much looping ..
     # TODO: convert van matrix->list->matrix ?? crappy
     input_transform_list  = input_transform.tolist()
     for index in nan_indices:
