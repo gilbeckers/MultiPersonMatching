@@ -231,6 +231,7 @@ Returns:
 # THE NEW one: for every modelpose , a matching input is seeked
 # Enkel zo kan je een GLOBAL MATCH FAILED besluiten na dat er geen matching inputpose is gevonden voor een modelpose
 def multi_person(models_poses, input_poses, model_image_name, input_image_name):
+    logger.info("GIT TESSSTJE")
     logger.info(" Multi-person matching...")
     logger.info(" amount of models: %d", len(models_poses))
     logger.info(" amount of inputs: %d", len(input_poses))
