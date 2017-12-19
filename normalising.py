@@ -1,6 +1,5 @@
 import numpy as np
 import logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("pose_match")
 
 #Cut pose out of image

@@ -34,7 +34,8 @@ models_array = model_features
 #pose_match.multi_person(models_array, input_features, model_image, input_image)
 
 #Second case; poses ARE checked on relation in space WITH NORMALISATION
-#pose_match.multi_person2(models_array, input_features, model_image, input_image) # with normalisation
+logger.info("$$$$$ Multi pose with normalisation $$$$$$")
+pose_match.multi_person2(models_array, input_features, model_image, input_image) # with normalisation
 
 #Second case; poses ARE checked on relation in space ZONDER NORMALISATION
 # -> Plotjesssss
@@ -42,6 +43,9 @@ models_array = model_features
 #  -> this is because no normalisation is done here (because of the plots)
 #     and thus these sneaky (0,0) points are not handled.
 # TODO: maybe not include the (0,0) handler only the normalising part??
+# TODO: !!!!!! problem when input pose includes undetected body feature!!!
+print("\n")
+logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
 pose_match.multi_person2(models_array, input_features, model_image, input_image,False) # without normalisation
 
 '''

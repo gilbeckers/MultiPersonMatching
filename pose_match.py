@@ -314,6 +314,7 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
     # Plotjes: affine transformation is calculated again but now without normalisation
     for i in list_of_all_matches:
         if i is not None:
+            logger.info("-- Looping over best-matches for producing plotjes:")
             (result, error_score, input_transformation) = single_person(i.model_features, i.input_features, False)
             plot_match(i.model_features, i.input_features, input_transformation, model_image_name, input_image_name)
 
@@ -360,7 +361,6 @@ Returns:
 '''
 #TODO fine-tune returns
 def multi_person2(model_poses, input_poses, model_image_name, input_image_name, normalise=True):
-
     # Find for each model_pose the best match input_pose
     # returns a list of best matches
     # TODO fine-tune return tuple
@@ -404,14 +404,17 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
 
     # Calc the affine trans of the whole
     (full_transformation, A_matrix) = affine_transformation.find_transformation(model_poses, input_transformed_combined)
-    #logger.info("trans: %s", full_transformation)
 
+    # TODO return True in case of match
     if(normalise):
         max_eucl_distance = pose_comparison.max_euclidean_distance(model_poses, input_transformed_combined)
-        logger.info("Max eucl distance: %s  (thresh ca. 0.13)", str(max_eucl_distance))
+        logger.info("--->Max eucl distance: %s  (thresh ca. 0.13)", str(max_eucl_distance)) # torso thresh is 0.11
     else:
-        plot_multi_pose(model_poses, input_poses, full_transformation, model_image_name, input_image_name, "input poses", "full procrustes")
-        plot_multi_pose(model_poses, input_transformed_combined, full_transformation, model_image_name, input_image_name, "superimposed model on input", "full procrustes")
+        plot_multi_pose(model_poses, input_poses, full_transformation,
+                        model_image_name, input_image_name, "input poses", "full procrustes")
+
+        plot_multi_pose(model_poses, input_transformed_combined, full_transformation,
+                        model_image_name, input_image_name, "superimposed model on input", "full procrustes")
 
     return True
 
