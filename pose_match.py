@@ -37,15 +37,17 @@ Returns:
 @:returns result matching
 @:returns error_score
 @:returns input_transformation
+@:returns model_features => is needed in multi_person2() and when (0,0) are added to modelpose
 '''
 def single_person(model_features, input_features, normalise=True):
     # TODO: Make a local copy ??
     # Because np.array is a mutable type => passed by reference
-    #   -> dus als model wordt verandert wordt er met gewijzigde array
+    #   -> dus als model wordt veranderd wordt er met gewijzigde array
     #       verder gewerkt naar callen van single_person()
-
     #model_features_copy = np.array(model_features)
+
     model_features_copy = model_features.copy()
+
     # First, some safety checks ...
     # Each model must be a valid model, this means no Openpose errors (=a undetected body-part) are allowed
     #  -> models with undetected bodyparts are unvalid
@@ -72,9 +74,9 @@ def single_person(model_features, input_features, normalise=True):
                 logger.warning(" Undetected body part in input: index(%d) %s", counter, prepocessing.get_bodypart(counter))
                 model_features_copy[counter][0] = 0#np.nan
                 model_features_copy[counter][1] = 0#np.nan
-                input_features[counter][0] = 0#np.nan
-                input_features[counter][1] = 0#np.nan
-            counter = counter+1;
+                #input_features[counter][0] = 0#np.nan
+                #input_features[counter][1] = 0#np.nan
+            counter = counter+1
 
     assert len(model_features_copy) == len(input_features)
 
@@ -121,7 +123,8 @@ def single_person(model_features, input_features, normalise=True):
     # Without normalisation the thresholds don't say anything
     #   -> so comparison is useless
     if(not normalise):
-        result = MatchResult(None, error_score=0,
+        result = MatchResult(None,
+                             error_score=0,
                              input_transformation=input_transformation)
         return result
 
@@ -151,7 +154,9 @@ def single_person(model_features, input_features, normalise=True):
     #TODO: construct a solid score algorithm
     error_score = (max_euclidean_error_torso + max_euclidean_error_legs)/2.0
 
-    result = MatchResult((result_torso and result_legs), error_score=error_score, input_transformation=input_transformation)
+    result = MatchResult((result_torso and result_legs),
+                         error_score=error_score,
+                         input_transformation=input_transformation)
     return result
 
 
@@ -231,7 +236,6 @@ Returns:
 # THE NEW one: for every modelpose , a matching input is seeked
 # Enkel zo kan je een GLOBAL MATCH FAILED besluiten na dat er geen matching inputpose is gevonden voor een modelpose
 def multi_person(models_poses, input_poses, model_image_name, input_image_name):
-    logger.info("GIT TESSSTJE")
     logger.info(" Multi-person matching...")
     logger.info(" amount of models: %d", len(models_poses))
     logger.info(" amount of inputs: %d", len(input_poses))
@@ -284,7 +288,7 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
             (result_match, error_score, input_transformation) = single_person(model_pose, input_pose, True)
 
             if (result_match):
-                match_combo = MatchCombo(error_score, counter_input_pose, counter_model_pose, model_pose, input_pose, input_transformation)
+                match_combo = MatchCombo(error_score, counter_input_pose, counter_model_pose,model_pose, input_pose, input_transformation)
                 logger.info(" Match: %s ModelPose(%d)->InputPose(%d)", result_match, counter_model_pose, counter_input_pose)
 
                 # If current MatchCombo object is empty, init it
@@ -315,7 +319,7 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
     # Plotjes: affine transformation is calculated again but now without normalisation
     for i in list_of_all_matches:
         if i is not None:
-            logger.info("-- Looping over best-matches for producing plotjes:")
+            logger.info("-- multi_pose1(): looping over best-matches for producing plotjes:")
             (result, error_score, input_transformation) = single_person(i.model_features, i.input_features, False)
             plot_match(i.model_features, i.input_features, input_transformation, model_image_name, input_image_name)
 
@@ -361,9 +365,10 @@ Returns:
 @:returns True : Match! 
 '''
 #TODO fine-tune returns
+#TODO optimaliseren voor geval van normalise! nu ist 2 in 1, ma voor productie is enkel normalise nodig in feite (ook ni helemaal waar -> feedback mss)
 def multi_person2(model_poses, input_poses, model_image_name, input_image_name, normalise=True):
     # Find for each model_pose the best match input_pose
-    # returns a list of best matches
+    # returns a list of best matches !! WITH normalisation !!
     # TODO fine-tune return tuple
     result = multi_person(model_poses, input_poses, model_image_name, input_image_name)
 
@@ -372,32 +377,64 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
         logger.error("Multi-person step1 match failed!")
         return False
 
+    aantal_models = len(result)
+    input_transformed_combined = np.zeros((18*aantal_models, 2))
+
     # The new input_transformed; contains all poses and wrapped in one total pose.
     # This input_transformed_combined is achieved by superimposing all the model poses on their corresponding inputpose
     input_transformed_combined = []
 
+    updated_models_combined = []
+
+
     # Loop over the best-matches
     #       [modelpose 1 -> inputpose x ; modelpose2 -> inputpose y; ...]
+    logger.info("-- multi_pose2(): looping over best-matches for procrustes:")
     for best_match in result:
-        #Note: the input_transformed from single_pose() is not used!!!
-        input_transformed = proc_do_it.superimpose(best_match.input_features, best_match.model_features, input_image_name, model_image_name)
-        input_transformed_combined.append(np.array(input_transformed))
+        # First check for undetected body parts. If present=> make corresponding point in model also (0,0)
+        # We can know strip them from our poses because we don't use split() for affine trans
+        # TODO: deze clean updated_model_pose wordt eigenlijk al eens berekent in single_pose()
+        #   -> loopke hier opnieuw is stevig redundant
+        if np.any(best_match.input_features[:] == [0, 0]):
+            counter = 0
+            for feature in best_match.input_features:
+                if feature[0] == 0 and feature[1] == 0:  # (0,0)
+                    logger.warning(" Undetected body part in input: index(%d) %s", counter,
+                                   prepocessing.get_bodypart(counter))
+                    best_match.model_features[counter][0] = 0  # np.nan
+                    best_match.model_features[counter][1] = 0  # np.nan
+                    # input_features[counter][0] = 0#np.nan
+                    # input_features[counter][1] = 0#np.nan
+                counter = counter + 1
 
-    #logger.info("size input: " + str(len(input_transformed_combined)))
-    #logger.info("size model: " + str(len(model_poses)))
+
+        # Note1: the input_transformed from single_pose() is not used!!!
+        input_transformed = proc_do_it.superimpose(best_match.input_features, best_match.model_features, input_image_name, model_image_name)
+
+        input_transformed_combined.append(np.array(input_transformed))
+        updated_models_combined.append(np.array(best_match.model_features))
+
+        #logger.info("inputtt %s", str(input_transformed))
+        #logger.info("modeelll %s ", str(best_match.model_features))
+
     assert len(input_transformed_combined) == len(model_poses)
 
     # TODO: harded code indexen weg doen
     # TODO: transpose van ne lijst? Mss beter toch met np.array() werken..  maar hoe init'en?
     assert len(input_transformed_combined) >= 2
-
+    # TODO : hier is wa refactoring/optimalisatie nodig ...
+    #logger.info("bef  input %s ", str(input_transformed_combined))
+    #logger.info("bef  modeelll %s ", str(model_poses))
     #Lijst vervormen naar matrix
-    input_transformed_combined = np.vstack([input_transformed_combined[0], input_transformed_combined[1]])
-    model_poses = np.vstack([model_poses[0], model_poses[1]]) #TODO waaarom moet da hier getransposed worden LOL ? zit ergens foutje in preprocessing
-    input_poses = np.vstack([input_poses[0], input_poses[1]])
 
-    # Pad with ones so our affine transformation can also do translations
-    input_transformed_combined = prepocessing.pad(input_transformed_combined)
+    input_transformed_combined = np.vstack([input_transformed_combined[0], input_transformed_combined[1]])
+    #model_poses = np.vstack([model_poses[0], model_poses[1]])
+    model_poses = np.vstack([updated_models_combined[0], updated_models_combined[1]])
+
+    logger.info("after input %s ", str(input_transformed_combined))
+    logger.info("after  modeelll %s ", str(model_poses))
+    # Redundant, wordt enkel gebruikt voor plotten
+    input_poses = np.vstack([input_poses[0], input_poses[1]])
 
     if(normalise):
         input_transformed_combined = normalising.feature_scaling(input_transformed_combined)
@@ -411,9 +448,9 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
         max_eucl_distance = pose_comparison.max_euclidean_distance(model_poses, input_transformed_combined)
         logger.info("--->Max eucl distance: %s  (thresh ca. 0.13)", str(max_eucl_distance)) # torso thresh is 0.11
     else:
+        logger.info("-- multi_pose2(): procrustes plotjes incoming ")
         plot_multi_pose(model_poses, input_poses, full_transformation,
                         model_image_name, input_image_name, "input poses", "full procrustes")
-
         plot_multi_pose(model_poses, input_transformed_combined, full_transformation,
                         model_image_name, input_image_name, "superimposed model on input", "full procrustes")
 

@@ -33,20 +33,24 @@ models_array = model_features
 #Simple case; poses are not checked on relation in space
 #pose_match.multi_person(models_array, input_features, model_image, input_image)
 
-#Second case; poses ARE checked on relation in space WITH NORMALISATION
-logger.info("$$$$$ Multi pose with normalisation $$$$$$")
-pose_match.multi_person2(models_array, input_features, model_image, input_image) # with normalisation
+#--------------------Second case; poses ARE checked on relation in space WITH NORMALISATION------------
 
-#Second case; poses ARE checked on relation in space ZONDER NORMALISATION
+#logger.info("$$$$$ Multi pose with normalisation $$$$$$")
+#pose_match.multi_person2(models_array, input_features, model_image, input_image) # with normalisation
+
+
+
+#--------------------Second case; poses ARE checked on relation in space ZONDER NORMALISATION---------
 # -> Plotjesssss
 # DISCLAIMER: It normal that the plot is fucked up in case of undetected body parts in the input
 #  -> this is because no normalisation is done here (because of the plots)
 #     and thus these sneaky (0,0) points are not handled.
 # TODO: maybe not include the (0,0) handler only the normalising part??
 # TODO: !!!!!! problem when input pose includes undetected body feature!!!
-print("\n")
+model_features = parse_openpose_json.parse_JSON_multi_person(model_json)
+input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
 logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
-pose_match.multi_person2(models_array, input_features, model_image, input_image,False) # without normalisation
+pose_match.multi_person2(model_features, input_features, model_image, input_image,False) # without normalisation
 
 '''
 -------------------------------- SINGLE PERSON -------------------------------------------
@@ -81,7 +85,7 @@ Calculate match fo real (incl. normalizing)
 '''
 Calculate match + plot the whole thing
 '''
-# Reload features bc model_features is a immutable type
+# Reload features bc model_features is a immutable type  -> niet meer nodig want er wordt een copy gemaalt in single_psoe()
 # and is changed in single_pose in case of undetected bodyparts
 #model_features = parse_openpose_json.parse_JSON_single_person(model_json)
 #input_features = parse_openpose_json.parse_JSON_single_person(input_json)
