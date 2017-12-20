@@ -315,11 +315,10 @@ def multi_person(models_poses, input_poses, model_image_name, input_image_name):
 
         counter_model_pose = counter_model_pose + 1
 
-
+    logger.info("-- multi_pose1(): looping over best-matches for producing plotjes:")
     # Plotjes: affine transformation is calculated again but now without normalisation
     for i in list_of_all_matches:
         if i is not None:
-            logger.info("-- multi_pose1(): looping over best-matches for producing plotjes:")
             (result, error_score, input_transformation) = single_person(i.model_features, i.input_features, False)
             plot_match(i.model_features, i.input_features, input_transformation, model_image_name, input_image_name)
 
@@ -395,19 +394,23 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
         # We can know strip them from our poses because we don't use split() for affine trans
         # TODO: deze clean updated_model_pose wordt eigenlijk al eens berekent in single_pose()
         #   -> loopke hier opnieuw is stevig redundant
+
+        # make a array with the indecex of undetected points
+        indexes_undetected_points = []
         if np.any(best_match.input_features[:] == [0, 0]):
+            assert True
             counter = 0
             for feature in best_match.input_features:
                 if feature[0] == 0 and feature[1] == 0:  # (0,0)
-                    logger.warning(" Undetected body part in input: index(%d) %s", counter,
-                                   prepocessing.get_bodypart(counter))
-                    best_match.model_features[counter][0] = 0  # np.nan
-                    best_match.model_features[counter][1] = 0  # np.nan
-                    # input_features[counter][0] = 0#np.nan
-                    # input_features[counter][1] = 0#np.nan
+                    indexes_undetected_points.append(counter)
+                    #logger.warning(" Undetected body part in input: index(%d) %s", counter,prepocessing.get_bodypart(counter))
+                    best_match.model_features[counter][0] = 0
+                    best_match.model_features[counter][1] = 0
                 counter = counter + 1
 
 
+        best_match.input_features = best_match.input_features[( best_match.input_features[:, 0] != 0) & (best_match.input_features[:, 1] != 0)]
+        best_match.model_features = best_match.model_features[( best_match.model_features[:, 0] != 0) & (best_match.model_features[:, 1] != 0)]
         # Note1: the input_transformed from single_pose() is not used!!!
         input_transformed = proc_do_it.superimpose(best_match.input_features, best_match.model_features, input_image_name, model_image_name)
 
@@ -421,18 +424,15 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
 
     # TODO: harded code indexen weg doen
     # TODO: transpose van ne lijst? Mss beter toch met np.array() werken..  maar hoe init'en?
-    assert len(input_transformed_combined) >= 2
     # TODO : hier is wa refactoring/optimalisatie nodig ...
-    #logger.info("bef  input %s ", str(input_transformed_combined))
-    #logger.info("bef  modeelll %s ", str(model_poses))
+
     #Lijst vervormen naar matrix
 
     input_transformed_combined = np.vstack([input_transformed_combined[0], input_transformed_combined[1]])
     #model_poses = np.vstack([model_poses[0], model_poses[1]])
     model_poses = np.vstack([updated_models_combined[0], updated_models_combined[1]])
 
-    logger.info("after input %s ", str(input_transformed_combined))
-    logger.info("after  modeelll %s ", str(model_poses))
+
     # Redundant, wordt enkel gebruikt voor plotten
     input_poses = np.vstack([input_poses[0], input_poses[1]])
 
@@ -447,6 +447,26 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
     if(normalise):
         max_eucl_distance = pose_comparison.max_euclidean_distance(model_poses, input_transformed_combined)
         logger.info("--->Max eucl distance: %s  (thresh ca. 0.13)", str(max_eucl_distance)) # torso thresh is 0.11
+
+        markersize = 2
+
+        f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
+        ax1.set_title('(input transformed (model superimposed on input )')
+        ax1.plot(*zip(*input_transformed_combined), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+
+        ax2.set_title('(model)')
+        ax2.plot(*zip(*model_poses), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+
+        ax3.set_title('(affine trans and model (red))')
+        ax3.plot(*zip(*full_transformation), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
+        ax3.plot(*zip(*model_poses), marker='o', color='b', ls='', label='model',
+                 ms=markersize)  # ms = markersize
+        ax = plt.gca()
+        ax.invert_yaxis()
+        #plt.show()
+        plt.draw()
+
+
     else:
         logger.info("-- multi_pose2(): procrustes plotjes incoming ")
         plot_multi_pose(model_poses, input_poses, full_transformation,
@@ -454,6 +474,8 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
         plot_multi_pose(model_poses, input_transformed_combined, full_transformation,
                         model_image_name, input_image_name, "superimposed model on input", "full procrustes")
 
+    #Block plots
+    plt.show()
     return True
 
 #Plots all Three: model, input and transformation
@@ -482,8 +504,8 @@ def plot_multi_pose(model_features, input_features, full_transform, model_image_
     ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     ax3.plot(*zip(*full_transform), marker='o', color='blue', ls='', ms=markersize)
     ax3.legend(handles=[mpatches.Patch(color='magenta', label='Model'), mpatches.Patch(color='blue', label='Input transformed')])
-
-    plt.show()
+    plt.draw()
+    #plt.show()
 
     return
 
@@ -503,6 +525,7 @@ def plot_match(model_features, input_features, input_transform_features, model_i
     red_patch = mpatches.Patch(color='magenta', label='model')
     #ax1.legend(handles=[red_patch])
 
+
     ax2.set_title('(input)')
     ax2.imshow(input_image)
     ax2.plot(*zip(*input_features), marker='o', color='red', ls='', ms=markersize)
@@ -513,7 +536,7 @@ def plot_match(model_features, input_features, input_transform_features, model_i
     ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     ax3.plot(*zip(*input_transform_features), marker='o', color='blue', ls='', ms=markersize)
     ax3.legend(handles=[mpatches.Patch(color='magenta', label='Model'), mpatches.Patch(color='blue', label='Input transformed')])
-
-    plt.show()
+    plt.draw()
+    #plt.show()
 
     return

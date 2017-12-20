@@ -37,7 +37,7 @@ def superimpose(input, model, input_image, model_image):
     translatie_factor = input[voet_index][1] - Z[voet_index][1]
     Z[:,1] = Z[:,1] + translatie_factor
 
-    '''
+
     markersize = 3
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
     ax1.imshow(plt.imread(input_image))
@@ -51,8 +51,8 @@ def superimpose(input, model, input_image, model_image):
     ax3.set_title('(model sumperimposed on input)')
     ax3.imshow(plt.imread(input_image))
     ax3.plot(*zip(*Z), marker='o', color='r', ls='', label='model', ms=markersize)  # ms = markersize
-    plt.show()
-    '''
+    #plt.show()
+    plt.draw()
 
     return Z
 
