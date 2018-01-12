@@ -10,12 +10,12 @@ images_data_path = 'data/image_data/'
 
 '''
 -------------------------------- SINGLE PERSON -------------------------------------------
-Read openpose output and parse body-joint points into an 2D array of 18 rows
+Read openpose output and parse body-joint points into an 2D arr ay of 18 rows
 Elke entry is een coordinatenkoppel(joint-point) in 3D , z-coordinaat wordt nul gekozen want we werken in 2D
 '''
 
-model = "emma1"
-input = "gil1"
+model = "sitting6"
+input = "duo3"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 

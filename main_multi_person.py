@@ -11,8 +11,8 @@ images_data_path = 'data/image_data/'
 '''
 -------------------- MULTI PERSON -------------------------------------
 '''
-model = "duo3"
-input = "duo4"
+model = "sitting6"
+input = "sitting7"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 model_image = images_data_path + model + '.jpg'
@@ -26,7 +26,7 @@ input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
 models_array = model_features
 
 #-------------------Simple case; poses are not checked on relation in space-------------------
-pose_match.multi_person(models_array, input_features, model_image, input_image)
+#pose_match.multi_person(models_array, input_features, model_image, input_image)
 
 #--------------------Second case; poses ARE checked on relation in space WITH NORMALISATION------------
 
@@ -43,7 +43,7 @@ pose_match.multi_person2(models_array, input_features, model_image, input_image)
 # TODO: !!!!!! problem when input pose includes undetected body feature!!!
 model_features = parse_openpose_json.parse_JSON_multi_person(model_json)
 input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
-logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
-pose_match.multi_person2(model_features, input_features, model_image, input_image,False) # without normalisation
+#logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
+#pose_match.multi_person2(model_features, input_features, model_image, input_image,False) # without normalisation
 
 
