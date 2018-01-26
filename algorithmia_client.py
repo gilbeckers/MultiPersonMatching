@@ -37,11 +37,11 @@ def call_pose_estimation_img_on_server(img_name):
     input = {
         "img_file": img_file
     }
-    algo = client.algo('bilgeckers/OpTFpy3_v2/1.0.4')
+    algo = client.algo('bilgeckers/OpTFpy3_v2/1.0.6')
     result = algo.pipe(input).result
     print(result)
     return result
 
-#upload_pose_img("p2.jpg")
+upload_pose_img("p2.jpg")
 #call_pose_estimation_img_on_server("p2.jpg")
 
