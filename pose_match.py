@@ -15,7 +15,6 @@ logger = logging.getLogger("pose_match")
 MatchResult = collections.namedtuple("MatchResult", ["match_bool", "error_score", "input_transformation"])
 
 class MatchCombo(object):
-
     def __init__(self, error_score, input_id, model_id, model_features, input_features, input_transformation):
         self.error_score = error_score
         self.input_id = input_id
@@ -25,13 +24,45 @@ class MatchCombo(object):
         self.input_transformation = input_transformation
 
 '''
-Description single_person():
-Takes two parameters, model name and input name.
-Both have a .json file in json_data and a .jpg or .png in image_data
+Description single_person(model_features, input_features):
+Decides if the inputpose matches with the modelpose.
+
+Only valid model poses are allowed, that is, only model poses with no undetected body parts. 
+If a unvalid model pose is used, the matching is aborted
+
+In contrast with the modelpose, an inputpose is allowed to contain a number of undetected body-parts. 
+These undetected features are marked as (0,0). The algorithm is designed to handle these incomplete situations as follow:
+
+In order to proceed the matching with these undetected points, a copy is made of the model pose 
+where the corresponding undetected points of the input pose are also set to (0,0). 
+-- So, the inputpose and modelpose_copy still have the same length of features (18) and also the same
+amount of undetected features. --
+The matching can now be performed as in the case if there are no undetected features. 
+
+
+
+In case of undetected features in the inputpose, one should care of the following:
+NOTE 1: The (0,0) points can't just be deleted because
+without them the feature-arrays would become ambigu. (the correspondence between model and input)
+
+NOTE 2: In order to disregard the undetected feauteres of the inputpose, the corresponding modelpose features
+are also altered to (0,0). Because we don't want the loose the original information of the complete modelpose, 
+first a local copy is made of the modelpose before the altering. The rest of the function (the actual matching)
+uses this copy. At the end, the original (the unaltered version) model is returned, so the next step in the pipeline 
+still has all the original data. 
+
+NOTE 3: the acceptation and introduction of (0,0) points is a danger for our current normalisation
+These particular origin points should not influence the normalisation 
+(which they do if we neglect them, xmin and ymin you know ... )
+
+
 
 Parameters:
+Takes two parameters, model name and input name.
+Both have a .json file in json_data and a .jpg or .png in image_data
 @:param model_features: 
 @:param input_features: 
+@:param normalise:
 
 Returns:
 @:returns result matching
@@ -43,13 +74,12 @@ def single_person(model_features, input_features, normalise=True):
     # TODO: Make a local copy ??
     # Because np.array is a mutable type => passed by reference
     #   -> dus als model wordt veranderd wordt er met gewijzigde array
-    #       verder gewerkt naar callen van single_person()
+    #       verder gewerkt na callen van single_person()
     #model_features_copy = np.array(model_features)
-
     model_features_copy = model_features.copy()
 
     # First, some safety checks ...
-    # Each model must be a valid model, this means no Openpose errors (=a undetected body-part) are allowed
+    # Each model must be a valid model, this means no Openpose errors (=an undetected body-part) are allowed
     #  -> models with undetected bodyparts are unvalid
     #  -> undetected body-parts are labeled by (0,0)
     if np.any(model_features_copy[:] == [0, 0]):
@@ -61,19 +91,19 @@ def single_person(model_features, input_features, normalise=True):
     # In that case, the corresponding point from the model is also changed to (0,0)
     #   -> afterwards matching can still proceed
     # The (0,0) points can't just be deleted because
-    # because without them the featurearrays would become ambigu. (the correspondence between model and input)
+    # without them the feature-arrays would become ambigu. (the correspondence between model and input)
     #
     # !! NOTE !! : the acceptation and introduction of (0,0) points
     # is a danger for our current normalisation
     # These particular origin points should not influence the normalisation
-    # (which they do if we neglect them, xmin and ymin you know...)
+    # (which they do if we neglect them, xmin and ymin you know ... )
     if np.any(input_features[:] == [0,0]):
         counter = 0
         for feature in input_features:
             if feature[0] == 0 and feature[1] == 0:  # (0,0)
                 logger.warning(" Undetected body part in input: index(%d) %s", counter, prepocessing.get_bodypart(counter))
-                model_features_copy[counter][0] = 0#np.nan
-                model_features_copy[counter][1] = 0#np.nan
+                model_features_copy[counter][0] = 0
+                model_features_copy[counter][1] = 0
                 #input_features[counter][0] = 0#np.nan
                 #input_features[counter][1] = 0#np.nan
             counter = counter+1
@@ -163,7 +193,8 @@ def single_person(model_features, input_features, normalise=True):
 #Plot the calculated transformation on the model image
 #And some other usefull plots for debugging
 #NO NORMALIZING IS DONE HERE BECAUSE POINTS ARE PLOTTED ON THE ORIGINAL PICTURES!
-def plot_single_person(model_features, input_features, model_image_name, input_image_name):
+def plot_single_person(model_features, input_features, model_image_name, input_image_name, input_title = "input",  model_title="model",
+                       transformation_title="transformation of input + model"):
     # First, some safety checks ...
     # Each model must be a valid model, this means no Openpose errors (=a undetected body-part) are allowed
     #  -> models with undetected bodyparts are unvalid
@@ -197,25 +228,25 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
     implot = ax1.imshow(model_image)
     #ax1.set_title(model_image_name + ' (model)')
-    ax1.set_title('(model)')
+    ax1.set_title(model_title)
     ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
-    red_patch = mpatches.Patch(color='red', label='model')
-    #ax1.legend(handles=[red_patch])
+    red_patch = mpatches.Patch(color='magenta', label='model')
+    ax1.legend(handles=[red_patch])
 
     #ax2.set_title(input_image_name + ' (input)')
-    ax2.set_title('(input)')
+    ax2.set_title(input_title)
     ax2.imshow(input_image)
     ax2.plot(*zip(*input_features), marker='o', color='r', ls='', ms=markersize)
-    #ax2.legend(handles=[mpatches.Patch(color='blue', label='input')])
+    ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
 
     whole_input_transform = prepocessing.unsplit(input_transformed_face, input_transformed_torso, input_transformed_legs)
-    ax3.set_title('Transformation of input + model')
+    ax3.set_title(transformation_title)
     ax3.imshow(model_image)
     ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
-    #ax3.legend(handles=[mpatches.Patch(color='yellow', label='Transformation of model')])
+    ax3.legend(handles=[mpatches.Patch(color='blue', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
 
-    plt.show()
+    plt.show(block=False)
 
 
 '''
