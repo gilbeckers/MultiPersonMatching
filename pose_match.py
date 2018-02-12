@@ -25,19 +25,21 @@ class MatchCombo(object):
 
 '''
 Description single_person(model_features, input_features):
-Decides if the inputpose matches with the modelpose.
+GOAL: Decides if the inputpose matches with the modelpose.
 
-Only valid model poses are allowed, that is, only model poses with no undetected body parts. 
-If a unvalid model pose is used, the matching is aborted
+Both valid and unvalid modelposes are allowed, that is, modelposes with no undetected body parts are also allowed. 
+If a unvalid model pose is used, the inputpose is adjusted and the matching continues. 
 
-In contrast with the modelpose, an inputpose is allowed to contain a number of undetected body-parts. 
+The inputpose is also allowed to contain a number of undetected body-parts. 
 These undetected features are marked as (0,0). The algorithm is designed to handle these incomplete situations as follow:
 
 In order to proceed the matching with these undetected points, a copy is made of the model pose 
 where the corresponding undetected points of the input pose are also set to (0,0). 
 -- So, the inputpose and modelpose_copy still have the same length of features (18) and also the same
 amount of undetected features. --
-The matching can now be performed as in the case if there are no undetected features. 
+
+Later, before the affine transformation is found, the undetected features are temporarily filtered out.
+In this way these origin points don't influence the least-squares algorithm.
 
 
 
@@ -45,7 +47,7 @@ In case of undetected features in the inputpose, one should care of the followin
 NOTE 1: The (0,0) points can't just be deleted because
 without them the feature-arrays would become ambigu. (the correspondence between model and input)
 
-NOTE 2: In order to disregard the undetected feauteres of the inputpose, the corresponding modelpose features
+NOTE 2: In order to disregard the undetected feauters of the inputpose, the corresponding modelpose features
 are also altered to (0,0). Because we don't want the loose the original information of the complete modelpose, 
 first a local copy is made of the modelpose before the altering. The rest of the function (the actual matching)
 uses this copy. At the end, the original (the unaltered version) model is returned, so the next step in the pipeline 
@@ -71,74 +73,17 @@ Returns:
 @:returns model_features => is needed in multi_person2() and when (0,0) are added to modelpose
 '''
 def single_person(model_features, input_features, normalise=True):
-    # TODO: Make a local copy ??
-    # Because np.array is a mutable type => passed by reference
-    #   -> dus als model wordt veranderd wordt er met gewijzigde array
-    #       verder gewerkt na callen van single_person()
-    #model_features_copy = np.array(model_features)
-    model_features_copy = model_features.copy()
 
-    # First, some safety checks ...
-    # Each model must be a valid model, this means no Openpose errors (=an undetected body-part) are allowed
-    #  -> models with undetected bodyparts are unvalid
-    #  -> undetected body-parts are labeled by (0,0)
-    if np.any(model_features_copy[:] == [0, 0]):
-        logger.error(" Unvalid model pose, undetected body-parts")
-        result = MatchResult(False, error_score=0, input_transformation=None)
-        return result
-
-    # Input is allowed to have a certain amount of undetected body parts
-    # In that case, the corresponding point from the model is also changed to (0,0)
-    #   -> afterwards matching can still proceed
-    # The (0,0) points can't just be deleted because
-    # without them the feature-arrays would become ambigu. (the correspondence between model and input)
-    #
-    # !! NOTE !! : the acceptation and introduction of (0,0) points
-    # is a danger for our current normalisation
-    # These particular origin points should not influence the normalisation
-    # (which they do if we neglect them, xmin and ymin you know ... )
-    if np.any(input_features[:] == [0,0]):
-        counter = 0
-        for feature in input_features:
-            if feature[0] == 0 and feature[1] == 0:  # (0,0)
-                logger.warning(" Undetected body part in input: index(%d) %s", counter, prepocessing.get_bodypart(counter))
-                model_features_copy[counter][0] = 0
-                model_features_copy[counter][1] = 0
-                #input_features[counter][0] = 0#np.nan
-                #input_features[counter][1] = 0#np.nan
-            counter = counter+1
-
-    assert len(model_features_copy) == len(input_features)
-
-    # Normalise features: crop => delen door Xmax & Ymax (NIEUWE MANIER!!)
-    # !Note!: as state above, care should be taken when dealing
-    #   with (0,0) points during normalisation
-    #
-    # TODO:
-    # !Note2!: The exclusion of a feature in the torso-regio doesn't effect
-    #   the affine transformation in the legs- and face-regio in general.
-    #   BUT in some case it CAN influence the (max-)euclidean distance.
-    #     -> (so could resolve in different MATCH result)
-    #   This is the case when the undetected bodypart [=(0,0)] would be the
-    #   minX or minY in the detected case.
-    #   Now, in the absence of this minX or minY, another feature will deliver
-    #   this value.
-    #   -> The normalisation region is smaller and gives different values after normalisation.
-    #
-    #   (BV: als iemand met handen in zij staat maar de rechter ellenboog niet gedetect wordt
-    #       => minX is nu van het rechthand dat in de zij staat.
-
-    # TODO
-    # It seems like the number of excluded features is proportional with the rotation angle
-    # -> That is, the more features are missing, the higher the rotation angle becomes, this is weird
+    # Filter the undetected features and mirror them in the other pose
+    (input_features_copy, model_features_copy) = prepocessing.handle_undetected_points(input_features, model_features)
 
     if (normalise):
         model_features_copy = normalising.feature_scaling(model_features_copy)
-        input_features = normalising.feature_scaling(input_features)
+        input_features_copy = normalising.feature_scaling(input_features_copy)
 
     #Split features in three parts
     (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features_copy)
-    (input_face, input_torso, input_legs) = prepocessing.split_in_face_legs_torso(input_features)
+    (input_face, input_torso, input_legs) = prepocessing.split_in_face_legs_torso(input_features_copy)
 
     # Zoek transformatie om input af te beelden op model
     # Returnt transformatie matrix + afbeelding/image van input op model
@@ -195,14 +140,9 @@ def single_person(model_features, input_features, normalise=True):
 #NO NORMALIZING IS DONE HERE BECAUSE POINTS ARE PLOTTED ON THE ORIGINAL PICTURES!
 def plot_single_person(model_features, input_features, model_image_name, input_image_name, input_title = "input",  model_title="model",
                        transformation_title="transformation of input + model"):
-    # First, some safety checks ...
-    # Each model must be a valid model, this means no Openpose errors (=a undetected body-part) are allowed
-    #  -> models with undetected bodyparts are unvalid
-    #  -> undetected body-parts are labeled by (0,0)
-    if np.any(model_features[:] == [0, 0]):
-        logger.error(" Unvalid model pose, undetected body-parts")
-        result = MatchResult(False, error_score=0, input_transformation=None)
-        return result
+
+    # Filter the undetected features and mirror them in the other pose
+    (input_features_copy, model_features_copy) = prepocessing.handle_undetected_points(input_features, model_features)
 
     # plot vars
     markersize = 3
@@ -212,8 +152,8 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     input_image = plt.imread(input_image_name)
 
     # Split features in three parts
-    (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features)
-    (input_face, input_torso, input_legs) = prepocessing.split_in_face_legs_torso(input_features)
+    (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features_copy)
+    (input_face, input_torso, input_legs) = prepocessing.split_in_face_legs_torso(input_features_copy)
 
     # Zoek transformatie om input af te beelden op model
     # Returnt transformatie matrix + afbeelding/image van input op model
@@ -229,20 +169,20 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     implot = ax1.imshow(model_image)
     #ax1.set_title(model_image_name + ' (model)')
     ax1.set_title(model_title)
-    ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    ax1.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     red_patch = mpatches.Patch(color='magenta', label='model')
     ax1.legend(handles=[red_patch])
 
     #ax2.set_title(input_image_name + ' (input)')
     ax2.set_title(input_title)
     ax2.imshow(input_image)
-    ax2.plot(*zip(*input_features), marker='o', color='r', ls='', ms=markersize)
+    ax2.plot(*zip(*input_features_copy), marker='o', color='r', ls='', ms=markersize)
     ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
 
     whole_input_transform = prepocessing.unsplit(input_transformed_face, input_transformed_torso, input_transformed_legs)
     ax3.set_title(transformation_title)
     ax3.imshow(model_image)
-    ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    ax3.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
     ax3.legend(handles=[mpatches.Patch(color='blue', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
 

@@ -13,12 +13,12 @@ Testjes voor unvalid input poses (single person)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("pose_match")
-json_data_path = 'unvalid/json_data/'
-images_data_path = 'unvalid/image_data/'
+json_data_path = 'data/json_data/'
+images_data_path = 'data/image_data/'
 
 
-model = "846"
-input = "1027"
+model = "1027"
+input = "846"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 model_image = images_data_path + model + '.png'
@@ -39,6 +39,7 @@ unvalid_list = [
 ]
 '''
 
+
 unvalid_list = [
     [[9], "RKnee" ],
     [[8], "RHip" ],
@@ -46,6 +47,10 @@ unvalid_list = [
     [[9, 12, 13 ], "L&R Knee + LAnkle"],
 ]
 
+
+
+
+# With valid input and valid model
 match_result = pose_match.single_person(model_features, input_features, True)
 logger.info("--Match or not: %s ", str(match_result.match_bool))
 pose_match.plot_single_person(model_features, input_features, model_image, input_image,
