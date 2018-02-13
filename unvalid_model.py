@@ -33,9 +33,6 @@ match_result = pose_match.single_person(model_features, input_features, True)
 logger.info("--Match or not: %s ", str(match_result.match_bool))
 
 
-print("model: " , model_features)
-print("input: " , input_features)
-
 pose_match.plot_single_person(model_features, input_features, model_image, input_image,
                               "valid input", "unvalid model",
                               "match result: " + str(match_result.match_bool) + "(" + str(round(match_result.error_score, 5)) + ")")

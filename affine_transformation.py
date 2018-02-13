@@ -11,8 +11,9 @@ def find_transformation(model_features, input_features):
     unpad = lambda x: x[:, :-1]
 
 
-    # It needs to be checked a (0,0) row is present due to undetected body-parts
-    # Namely, (0,0) rows a accepted in the input pose
+    # It needs to be checked if a (0,0) row is present due to undetected body-parts
+    # Initially undetected features are accepted in both the input & model pose
+    # But, before finding the affine transformation these are filterd out
     input_counter = 0
 
     # List with indices of all the (0,0)-rows
@@ -27,7 +28,7 @@ def find_transformation(model_features, input_features):
     input_features_zonder_nan = []
     model_features_zonder_nan = []
     for in_feature in input_features:
-        if (in_feature[0] == 0) and (in_feature[1] == 0): #np.isnan(in_feature[0]) and np.isnan(in_feature[1])
+        if (in_feature[0] == 0) and (in_feature[1] == 0): # is a (0,0) feature
             nan_indices.append(input_counter)
         else:
             input_features_zonder_nan.append([in_feature[0], in_feature[1]])
@@ -45,19 +46,19 @@ def find_transformation(model_features, input_features):
     # Solve the least squares problem X * A = Y
     # to find our transformation matrix A and then we can display the input on the model = Y'
     A, res, rank, s = np.linalg.lstsq(X, Y)
-
-
     transform = lambda x: unpad(np.dot(pad(x), A))
     input_transform = transform(input_features)
+
     # Restore the (0,0) rows
     # TODO: maybe too much looping ..
     # TODO: convert van matrix->list->matrix ?? crappy
+    # Note!: werkt enkel goed als nan_indices gesort is van klein naar groot!! anders kans over index out-of-bounds
     input_transform_list  = input_transform.tolist()
     for index in nan_indices:
         input_transform_list.insert(index, [0,0])
     input_transform = np.array(input_transform_list)
 
-    #print("traaaans: ", input_transform)
+
     A[np.abs(A) < 1e-10] = 0  # set really small values to zero
 
     return (input_transform, A)
