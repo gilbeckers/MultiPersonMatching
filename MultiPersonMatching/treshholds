@@ -1,0 +1,126 @@
+affine version 1
+pose1:
+eucl_dis_tresh_torso= 0.068
+rotation_tresh_torso= 13.606
+eucl_dis_tresh_legs= 0.045
+rotation_tresh_legs= 14.677
+eucld_dis_shoulders_tresh= 0.068
+
+pose2:
+eucl_dis_tresh_torso= 0.041
+rotation_tresh_torso= 13.491
+eucl_dis_tresh_legs= 0.032
+rotation_tresh_legs= 9.579
+eucld_dis_shoulders_tresh= 0.033
+
+pose3:
+eucl_dis_tresh_torso= 0.028
+rotation_tresh_torso= 7.079
+eucl_dis_tresh_legs= 0.042
+rotation_tresh_legs= 4.998
+eucld_dis_shoulders_tresh= 0.028
+
+pose4:
+eucl_dis_tresh_torso= 0.024
+rotation_tresh_torso= ERROR
+eucl_dis_tresh_legs= 0.04
+rotation_tresh_legs= 13.875
+eucld_dis_shoulders_tresh= 0.024
+
+pose5:
+eucl_dis_tresh_torso= 0.033
+rotation_tresh_torso= 11.699
+eucl_dis_tresh_legs= 0.041
+rotation_tresh_legs= 10.181
+eucld_dis_shoulders_tresh= 0.025
+
+pose6:
+eucl_dis_tresh_torso= 0.041
+rotation_tresh_torso= 11.432
+eucl_dis_tresh_legs= 0.037
+rotation_tresh_legs= 8.047
+eucld_dis_shoulders_tresh= 0.037
+
+
+
+affine version 2
+pose1:
+eucl_dis_tresh_torso= 0.098
+rotation_tresh_torso= 10.847
+eucl_dis_tresh_legs= 0.05
+rotation_tresh_legs= 14.527
+eucld_dis_shoulders_tresh= 0.085
+
+
+pose2:
+eucl_dis_tresh_torso= 0.087
+rotation_tresh_torso= 10.865
+eucl_dis_tresh_legs= 0.037
+rotation_tresh_legs= 7.178
+eucld_dis_shoulders_tresh= 0.065
+
+pose3:
+eucl_dis_tresh_torso= 0.056
+rotation_tresh_torso= 5.608
+eucl_dis_tresh_legs= 0.042
+rotation_tresh_legs= 4.694
+eucld_dis_shoulders_tresh= 0.056
+
+pose4:
+eucl_dis_tresh_torso= 0.075
+rotation_tresh_torso= 4.836
+eucl_dis_tresh_legs= 0.04
+rotation_tresh_legs= 13.785
+eucld_dis_shoulders_tresh= 0.065
+
+pose5:
+eucl_dis_tresh_torso= 0.097
+rotation_tresh_torso= 10.477
+eucl_dis_tresh_legs= 0.046
+rotation_tresh_legs= 7.795
+eucld_dis_shoulders_tresh= 0.041
+
+pose6:
+eucl_dis_tresh_torso= 0.076
+rotation_tresh_torso= 7.124
+eucl_dis_tresh_legs= 0.04
+rotation_tresh_legs= 8.044
+eucld_dis_shoulders_tresh= 0.051
+
+
+
+******************************************backup***************************************************
+pose 1 result:
+ eucl_dis_tresh_torso= 0.075
+ rotation_tresh_torso= 13.361
+ eucl_dis_tresh_legs= 0.048
+ rotation_tresh_legs= 14.588
+ eucld_dis_shoulders_tresh= 0.068
+
+pose2 result:
+ eucl_dis_tresh_torso= 0.053
+ rotation_tresh_torso= 11.414
+ eucl_dis_tresh_legs= 0.045
+ rotation_tresh_legs= 12.957
+ eucld_dis_shoulders_tresh= 0.036
+
+pose3 result:
+ eucl_dis_tresh_torso= 0.045
+ rotation_tresh_torso= 16.372
+ eucl_dis_tresh_legs= 0.035
+ rotation_tresh_legs= 10.775
+ eucld_dis_shoulders_tresh= 0.035
+
+pose4 result:
+ eucl_dis_tresh_torso= 0.063
+ rotation_tresh_torso= 16.801
+ eucl_dis_tresh_legs= 0.046
+ rotation_tresh_legs= 12.802
+ eucld_dis_shoulders_tresh= 0.041
+
+pose5 result:
+ eucl_dis_tresh_torso= 0.05
+ rotation_tresh_torso= 4.818
+ eucl_dis_tresh_legs= 0.03
+ rotation_tresh_legs= 14.504
+ eucld_dis_shoulders_tresh= 0.044
