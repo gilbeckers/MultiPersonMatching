@@ -14,12 +14,12 @@ Read openpose output and parse body-joint points into an 2D arr ay of 18 rows
 Elke entry is een coordinatenkoppel(joint-point) in 3D , z-coordinaat wordt nul gekozen want we werken in 2D
 '''
 
-model = "handsup1"
-input = "1027"
+model = "model4"
+input = "pose4_fout"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 
-model_image = images_data_path + model + '.JPG'
+model_image = images_data_path + model + '.png'
 input_image = images_data_path + input + '.png'
 
 model_features = parse_openpose_json.parse_JSON_single_person(model_json)

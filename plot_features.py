@@ -9,8 +9,8 @@ json_data_path = 'data/json_data/'
 images_data_path = 'data/image_data/'
 
 
-model = "model2"
-input = "model2" #""jochen_foto1_old"
+model = "model4"
+input = "pose4_fout" #""jochen_foto1_old"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 model_image = images_data_path + model + '.png'

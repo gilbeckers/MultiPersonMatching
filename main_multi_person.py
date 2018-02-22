@@ -43,7 +43,7 @@ pose_match.multi_person2(models_array, input_features, model_image, input_image)
 # TODO: !!!!!! problem when input pose includes undetected body feature!!!
 model_features = parse_openpose_json.parse_JSON_multi_person(model_json)
 input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
-#logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
-#pose_match.multi_person2(model_features, input_features, model_image, input_image,False) # without normalisation
+logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
+pose_match.multi_person2(model_features, input_features, model_image, input_image,False) # without normalisation
 
 
