@@ -9,9 +9,10 @@ import glob
 import os
 import calcAngle
 
-path = '/media/jochen/2FCA69D53AB1BFF49/dataset/poses/'
-data = '/media/jochen/2FCA69D53AB1BFF49/dataset/data/'
-matched = '/media/jochen/2FCA69D53AB1BFF49/dataset/matched/'
+multipose = ' /media/jochen/2FCA69D53AB1BFF41/dataset/Multipose/1WDataset/'
+path = '/media/jochen/2FCA69D53AB1BFF41/dataset/poses/'
+data = '/media/jochen/2FCA69D53AB1BFF41/dataset/data/'
+matched = '/media/jochen/2FCA69D53AB1BFF41/dataset/matched/'
 
 def make_poses_left():
     count = 0
@@ -273,6 +274,7 @@ def find_treshholds(pose):
     print "eucld_dis_shoulders_tresh= " +str(eucld_dis_shoulders_tresh)
     '''
     print "angle = " +str(angle)
+
 def check_pose_data(pose):
     model = path+pose+"/json/1.json"
     model_features = parse_openpose_json.parse_JSON_single_person(model)

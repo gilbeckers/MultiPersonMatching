@@ -44,6 +44,13 @@ eucld_dis_shoulders_tresh= 0.037
 
 
 affine version 2
+best:
+eucl_dis_tresh_torso= 0.098
+rotation_tresh_torso= 10.847
+eucl_dis_tresh_legs= 0.05
+rotation_tresh_legs= 14.527
+eucld_dis_shoulders_tresh= 0.085
+
 pose1:
 eucl_dis_tresh_torso= 0.098
 rotation_tresh_torso= 10.847

@@ -7,12 +7,13 @@ logger = logging.getLogger("pose_match")
 #Geeft final boolean terug= heel part (torso, legs of face) is match of geen match
 def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix, eucld_tresh, rotation_tresh,
                                 max_euclid_distance_shoulders, shoulder_thresh):
-
+        if not len(transformation_matrix) ==0:
         #Calcuation rotation of transformation
-        rotation_1 = np.abs(np.math.atan2(-transformation_matrix[0][1], transformation_matrix[0][0]) * 57.3)
-        rotation_2 = np.abs(np.math.atan2(transformation_matrix[1][0], transformation_matrix[1][1]) * 57.3)
-        rot_max = max(rotation_2, rotation_1)
-
+            rotation_1 = np.abs(np.math.atan2(-transformation_matrix[0][1], transformation_matrix[0][0]) * 57.3)
+            rotation_2 = np.abs(np.math.atan2(transformation_matrix[1][0], transformation_matrix[1][1]) * 57.3)
+            rot_max = max(rotation_2, rotation_1)
+        else:
+            rot_max =0
         logger.debug(" --- Evaluate Torso---")
         logger.debug(" max eucldis: %s  thresh(%s)", max_euclid_distance_torso, eucld_tresh)
         logger.debug(" max rot:     %s  thresh(%s)", rot_max, rotation_tresh)
@@ -35,9 +36,12 @@ def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix
 
 #Evaluate legs ..
 def decide_legs(max_error, transformation_matrix, eucld_tresh, rotation_tresh):
-    rotation_1 = np.abs(np.math.atan2(-transformation_matrix[0][1], transformation_matrix[0][0]) * 57.3)
-    rotation_2 = np.abs(np.math.atan2(transformation_matrix[1][0], transformation_matrix[1][1]) * 57.3)
-    rot_max = max(rotation_2, rotation_1)
+    if not len(transformation_matrix) ==0:
+        rotation_1 = np.abs(np.math.atan2(-transformation_matrix[0][1], transformation_matrix[0][0]) * 57.3)
+        rotation_2 = np.abs(np.math.atan2(transformation_matrix[1][0], transformation_matrix[1][1]) * 57.3)
+        rot_max = max(rotation_2, rotation_1)
+    else:
+        rot_max =0
 
 
     logger.debug(" --- Evaluate Legs---")

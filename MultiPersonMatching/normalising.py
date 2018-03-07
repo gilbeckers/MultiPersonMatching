@@ -11,8 +11,10 @@ def feature_scaling(input):
     # Here it's assumed that (0,y) and (x,0) don't occur
     # Is a acceptable assumption because the chance is sooooo small
     #   that a feature is positioned just right on the x or y axis
+
     xmax = max(input[:, 0])
     ymax = max(input[:, 1])
+
 
     xmin = np.min(input[np.nonzero(input[:,0])]) #np.nanmin(input[:, 0])
     ymin = np.min(input[np.nonzero(input[:,1])]) #np.nanmin(input[:, 1])
@@ -24,6 +26,7 @@ def feature_scaling(input):
     output[output<0] = 0
     #logger.info("out: %s", str(output))
     return output
+
 
 def feature_scaling_multi_person():
 
@@ -73,4 +76,3 @@ def normalise_standardization(input):
     output = np.vstack([sec_x, sec_y]).T
 
     return output
-

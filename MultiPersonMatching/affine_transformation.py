@@ -34,8 +34,13 @@ def find_transformation(model_features, input_features):
             model_features_zonder_nan.append([model_features[input_counter][0], model_features[input_counter][1]])
         input_counter = input_counter+1
 
+    if len(model_features_zonder_nan)==0 or len(input_features_zonder_nan) ==0:
+        return (input_features,[])
+
     input_features = np.array(input_features_zonder_nan)
     model_features = np.array(model_features_zonder_nan)
+
+
 
     # padden:
     # naar vorm [ x x 0 1]
@@ -44,7 +49,7 @@ def find_transformation(model_features, input_features):
 
     # Solve the least squares problem X * A = Y
     # to find our transformation matrix A and then we can display the input on the model = Y'
-    A, res, rank, s = np.linalg.lstsq(X, Y)
+    A, res, rank, s = np.linalg.lstsq(X, Y,rcond=None)
 
 
     transform = lambda x: unpad(np.dot(pad(x), A))
@@ -59,7 +64,6 @@ def find_transformation(model_features, input_features):
 
     #print("traaaans: ", input_transform)
     A[np.abs(A) < 1e-10] = 0  # set really small values to zero
-
     return (input_transform, A)
 
 

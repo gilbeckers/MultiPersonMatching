@@ -11,11 +11,46 @@ This is done with a translation and a rotation an again a translation in the y d
 1. Center of gravity are aligned: model pose is superimposed onto input pose:
     Translation & rotation
 
-2. Finally, the feet are aligned 
+2. Finally, the feet are aligned
     Second Translation
 
 '''
-def superimpose(input, model, input_image, model_image):
+
+def superimpose(input, model):
+
+    #input = prepocessing.unpad(input)
+    #model = prepocessing.unpad(model)
+
+    new_model =np.empty((0,2), int)
+    new_input =np.empty((0,2), int)
+    for feature_place in range(0,18):
+        if not (((model[feature_place][0] == 0) and (model[feature_place][1] == 0)) or ((input[feature_place][0] == 0) and (input[feature_place][1] ==0))):
+            new_model = np.vstack((new_model,model[feature_place]))
+            new_input = np.vstack((new_input,input[feature_place]))
+
+    # Note1: the input_transformed from single_pose() is not used!!!
+    model = new_model
+    input = new_input
+    # First translation and rotation, NO SCALING
+    (d, Z, m) = procrustes(input, model, False) #Scaling is false
+
+    # Zoeken naar laagste punt van lichaam (linker of rechter voet)
+    # =>   Max van linker en recht voet (y-coordinaat)
+    # => pose wordt aligned met laagste punt (puur translatie)
+
+
+    modelmin =  min(model, key=lambda x: x[1])
+    transformmin = min(Z, key=lambda x: x[1])
+
+    # Second translation
+    translatie_factor = modelmin[1] - transformmin[1]
+
+    Z[:,1] = Z[:,1] + translatie_factor
+
+    return (Z,model)
+
+
+def superimpose_plot(input, model, input_image, model_image):
 
     #input = prepocessing.unpad(input)
     #model = prepocessing.unpad(model)
@@ -28,6 +63,7 @@ def superimpose(input, model, input_image, model_image):
     # => pose wordt aligned met laagste punt (puur translatie)
     voet_index = None
 
+
     if input[10][1] >= input[13][1]:
         voet_index = 10
     else:
@@ -36,7 +72,6 @@ def superimpose(input, model, input_image, model_image):
     # Second translation
     translatie_factor = input[voet_index][1] - Z[voet_index][1]
     Z[:,1] = Z[:,1] + translatie_factor
-
 
     markersize = 3
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
@@ -55,6 +90,7 @@ def superimpose(input, model, input_image, model_image):
     plt.draw()
 
     return Z
+
 
 def procrustes(X, Y, scaling=True, reflection='best'):
     """

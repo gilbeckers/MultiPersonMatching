@@ -44,9 +44,13 @@ def parse_JSON_multi_person(filename):
         array = numpy.zeros((18, 2))
         arrayIndex = 0
         for i in range(0, len(person_keypoints), 3):
-            array[arrayIndex][0] = person_keypoints[i]
-            array[arrayIndex][1] = person_keypoints[i + 1]
-            arrayIndex += 1
+            if person_keypoints[i+2]> 0.4:
+                array[arrayIndex][0] = person_keypoints[i]
+                array[arrayIndex][1] = person_keypoints[i+1]
+            else:
+                array[arrayIndex][0] = 0
+                array[arrayIndex][1] = 0
+            arrayIndex+=1
         list_of_features.append(array)
 
     return list_of_features
