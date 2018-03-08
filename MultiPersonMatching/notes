@@ -1,0 +1,8 @@
+problemen met pose 6 reden onbekend probleem opgelost maar nog steeds onbekend
+
+nieuw probleem:
+algorithme te streng als er punten verdwijnen uit de pose. => De vraag is natuurlijk hoe belangrijk het is om deze punten mee te tellen als ze niet aanwezig zijn in het model.
+oplossing: zeker bij de benen kan men zeggen dat als ze er niet volledig op staan, ze de pose ook niet zullen beinvloeden ???? testen
+
+er gaat een hele hoop mis op dit moment. Volgens mij wordt er teveel data weggelaten om nog juist te kunnen besluiten.
+Werk voor woensdag.
