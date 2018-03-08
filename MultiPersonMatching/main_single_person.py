@@ -1,4 +1,5 @@
-import pose_match
+import multiperson_match
+import singleperson_match
 import parse_openpose_json
 import numpy as np
 import logging
@@ -33,7 +34,7 @@ input_features = parse_openpose_json.parse_JSON_single_person(input_json)
 Calculate match fo real (incl. normalizing)
 '''
 #TODO: edit return tuple !!
-match_result = pose_match.single_person(model_features, input_features, True)
+match_result = singleperson.single_person(model_features, input_features, True)
 logger.info("--Match or not: %s ", str(match_result.match_bool))
 
 
@@ -44,4 +45,4 @@ Calculate match + plot the whole thing
 # and is changed in single_pose in case of undetected bodyparts
 #model_features = parse_openpose_json.parse_JSON_single_person(model_json)
 #input_features = parse_openpose_json.parse_JSON_single_person(input_json)
-pose_match.plot_single_person(model_features, input_features, model_image, input_image)
+singleperson_match.plot_single_person(model_features, input_features, model_image, input_image)

@@ -1,4 +1,5 @@
-import pose_match
+import multiperson_match
+import singleperson_match
 import parse_openpose_json
 import numpy as np
 import logging
@@ -26,12 +27,12 @@ input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
 models_array = model_features
 
 #-------------------Simple case; poses are not checked on relation in space-------------------
-pose_match.multi_person(models_array, input_features, model_image, input_image)
+multiperson.multi_person(models_array, input_features, model_image, input_image)
 
 #--------------------Second case; poses ARE checked on relation in space WITH NORMALISATION------------
 
 logger.info("$$$$$ Multi pose with normalisation $$$$$$")
-pose_match.multi_person2(models_array, input_features, model_image, input_image) # with normalisation
+multiperson.multi_person(models_array, input_features, model_image, input_image) # with normalisation
 
 
 #--------------------Second case; poses ARE checked on relation in space ZONDER NORMALISATION---------
@@ -44,6 +45,4 @@ pose_match.multi_person2(models_array, input_features, model_image, input_image)
 model_features = parse_openpose_json.parse_JSON_multi_person(model_json)
 input_features = parse_openpose_json.parse_JSON_multi_person(input_json)
 logger.info("$$$$$ Multi pose without norm (plotting) $$$$$$")
-pose_match.multi_person2(model_features, input_features, model_image, input_image,False) # without normalisation
-
-
+multiperson_match.multi_person(model_features, input_features, model_image, input_image,False) # without normalisation
