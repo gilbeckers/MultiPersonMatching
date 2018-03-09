@@ -6,7 +6,7 @@ import json
 import sys
 sys.path.insert(0,"/openpose-master/MultiPersonMatching")
 import parse_openpose_json
-import pose_match
+import multiperson_match
 import glob
 import base64
 
@@ -130,7 +130,7 @@ def findmatch(filename, id):
     #find matched
     model_features = parse_openpose_json.parse_JSON_single_person(modeladr)
     input_features = parse_openpose_json.parse_JSON_single_person(inputadr)
-    (result, error_score, input_transform) = pose_match.single_person(model_features, input_features, True)
+    (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
 
     print("Match or not: ", result)
     with open(inputadr) as json_file:
