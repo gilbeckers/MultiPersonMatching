@@ -210,7 +210,8 @@ def single_person_v2(model_features, input_features, normalise=True):
             counter = counter+1
 
     # if the input has more then 4 points not recognised then the model, then return false
-    if counter_not_found_points > 2:
+
+    if counter_not_found_points > 4:
         logger.debug("Model has more feature then input therefore not matched")
         result = MatchResult(False,
                              error_score=0,
@@ -268,9 +269,11 @@ def single_person_v2(model_features, input_features, normalise=True):
     (input_transformed_face, transformation_matrix_face) = affine_transformation.find_transformation(model_face, input_face)
     max_euclidean_error_face = pose_comparison.max_euclidean_distance(model_face, input_transformed_face)
     if  np.count_nonzero(model_face)>5:
-
-        #
-        result_face = True
+        if (np.count_nonzero(model_face) - np.count_nonzero(input_face)) < 2:
+            result_face = True
+        else:
+            logger.debug("Model has more face feature then input therefore not matched")
+            result_face = False
     else:
         result_face = True
 
@@ -279,9 +282,13 @@ def single_person_v2(model_features, input_features, normalise=True):
     max_euclidean_error_torso = pose_comparison.max_euclidean_distance(model_torso, input_transformed_torso)
     max_euclidean_error_shoulders = pose_comparison.max_euclidean_distance_shoulders(model_torso, input_transformed_torso)
     if  np.count_nonzero(model_torso)>5:
-        result_torso = pose_comparison.decide_torso_shoulders_incl(max_euclidean_error_torso, transformation_matrix_torso,
-                                                    eucl_dis_tresh_torso, rotation_tresh_torso,
-                                                    max_euclidean_error_shoulders, eucld_dis_shoulders_tresh)
+        if (np.count_nonzero(model_torso)-np.count_nonzero(input_torso)) < 2:
+            result_torso = pose_comparison.decide_torso_shoulders_incl(max_euclidean_error_torso, transformation_matrix_torso,
+                                                        eucl_dis_tresh_torso, rotation_tresh_torso,
+                                                        max_euclidean_error_shoulders, eucld_dis_shoulders_tresh)
+        else:
+            logger.debug("Model has more Torso feature then input therefore not matched")
+            result_torso = False
     else:
         result_torso = True
 
@@ -289,8 +296,12 @@ def single_person_v2(model_features, input_features, normalise=True):
     (input_transformed_legs, transformation_matrix_legs) = affine_transformation.find_transformation(model_legs, input_legs)
     max_euclidean_error_legs = pose_comparison.max_euclidean_distance(model_legs, input_transformed_legs)
     if  np.count_nonzero(model_legs)>5:
-        result_legs = pose_comparison.decide_legs(max_euclidean_error_legs, transformation_matrix_legs,
-                                                      eucl_dis_tresh_legs, rotation_tresh_legs)
+        if (np.count_nonzero(model_legs) - np.count_nonzero(input_legs)) < 2:
+            result_legs = pose_comparison.decide_legs(max_euclidean_error_legs, transformation_matrix_legs,
+                                                          eucl_dis_tresh_legs, rotation_tresh_legs)
+        else:
+            logger.debug("Model has more legs feature then input therefore not matched")
+            result_legs = False
     else:
         result_legs = True
 

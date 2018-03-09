@@ -15,10 +15,11 @@ def feature_scaling(input):
     xmax = max(input[:, 0])
     ymax = max(input[:, 1])
 
-
-    xmin = np.min(input[np.nonzero(input[:,0])]) #np.nanmin(input[:, 0])
-    ymin = np.min(input[np.nonzero(input[:,1])]) #np.nanmin(input[:, 1])
-
+    try:
+        xmin = np.min(input[np.nonzero(input[:,0])]) #np.nanmin(input[:, 0])
+        ymin = np.min(input[np.nonzero(input[:,1])]) #np.nanmin(input[:, 1])
+    except:
+        return input
     sec_x = (input[:, 0]-xmin)/(xmax-xmin)
     sec_y = (input[:, 1]-ymin)/(ymax-ymin)
 

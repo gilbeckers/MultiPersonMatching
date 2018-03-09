@@ -27,6 +27,6 @@ logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.test_script()
 '''
 '''
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.check_matches("00001")
 '''

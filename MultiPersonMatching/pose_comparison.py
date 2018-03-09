@@ -14,17 +14,18 @@ def decide_torso_shoulders_incl(max_euclid_distance_torso, transformation_matrix
             rot_max = max(rotation_2, rotation_1)
         else:
             rot_max =0
+        '''
         logger.debug(" --- Evaluate Torso---")
         logger.debug(" max eucldis: %s  thresh(%s)", max_euclid_distance_torso, eucld_tresh)
         logger.debug(" max rot:     %s  thresh(%s)", rot_max, rotation_tresh)
         logger.debug(" max shoulder:%s  thresh(%s)", max_euclid_distance_shoulders, shoulder_thresh)
-
+        '''
         # Zeker juist, dus match
         if (max_euclid_distance_torso <= eucld_tresh and rot_max <= rotation_tresh):
 
             # Checken of schouders niet te veel afwijken
             if (max_euclid_distance_shoulders <= shoulder_thresh):
-                logger.debug("\t ->#TORSO MATCH#")
+                #logger.debug("\t ->#TORSO MATCH#")
                 return True
             else:
                 logger.debug("!!!!!TORSO NO MATCH Schouder error te groot!!!!")
@@ -43,14 +44,14 @@ def decide_legs(max_error, transformation_matrix, eucld_tresh, rotation_tresh):
     else:
         rot_max =0
 
-
+    '''
     logger.debug(" --- Evaluate Legs---")
     logger.debug(" max eucldis: %s thresh(%s)", max_error, eucld_tresh)
     logger.debug(" max rot:     %s thresh(%s)", rot_max, rotation_tresh)
-
+    '''
     # Zeker juist, dus match
     if (max_error <= eucld_tresh and rot_max <= rotation_tresh):
-        logger.debug("\t ->#LEGS MATCH#")
+        #logger.debug("\t ->#LEGS MATCH#")
         return True
 
     #Geen match

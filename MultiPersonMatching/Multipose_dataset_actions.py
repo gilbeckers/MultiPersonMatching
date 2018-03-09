@@ -31,7 +31,7 @@ def find_matches_with(pose):
         for json in glob.iglob(data+"*_keypoints.json"):
             logger.info(json)
             input_features = parse_openpose_json.parse_JSON_multi_person(json)
-            (result, error_score, input_transform) = multiperson_match.multi_person(model_features, input_features, True)
+            (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
             if result == True:
                 place = json.split("_keypoints")[0]
                 place = place.split("json/")[1]
@@ -39,7 +39,7 @@ def find_matches_with(pose):
                 os.system("cp "+json+" "+poses+pose+"/json/"+place)
                 foto = json.split("_")[0];
                 foto = foto.replace("json","fotos")
-                foto = foto +".png"
+                foto = foto +".jpg"
                 os.system("cp "+foto+" "+poses+pose+"/fotos/")
                 count = count+1
                 logger.info("true")
@@ -51,14 +51,10 @@ def find_matches_with(pose):
 def test_script():
     model = data+"00100_keypoints.json"
     model_features = parse_openpose_json.parse_JSON_multi_person(model)
-    input = data+"03720_keypoints.json"
-    '''
-    for i in range(10,78):
-        input = data+"027"+str(i)+"_keypoints.json"
-        print input
-    '''
+    input = data+"00100_keypoints.json"
+
     input_features = parse_openpose_json.parse_JSON_multi_person(input)
-    (result, error_score, input_transform) = multiperson_match.multi_person(model_features, input_features, True)
+    (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
 
     print result
 
@@ -68,7 +64,7 @@ def check_matches(pose):
     count =0
     for json in glob.iglob(poses+pose+"/json/*.json"):
         input_features = parse_openpose_json.parse_JSON_multi_person(json)
-        (result, error_score, input_transform) = multiperson_match.multi_person(model_features, input_features, True)
+        (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
         if result == False:
             count = count +1
             print "error at: "+json
