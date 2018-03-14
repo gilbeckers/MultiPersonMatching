@@ -136,7 +136,6 @@ def multi_person(model_poses, input_poses, normalise=True):
 
         indexes_undetected_points = []
         if np.any(best_match.input_features[:] == [0, 0]):
-            assert True
             counter = 0
             for feature in best_match.input_features:
                 if feature[0] == 0 and feature[1] == 0:  # (0,0)
@@ -201,11 +200,9 @@ def find_ordered_matches(model_poses,input_poses):
         logger.debug(" Multi person match failed. Inputposes or modelposes are empty")
         return False
 
-
     if(len(input_poses) < len(model_poses)):
         logger.debug(" Multi person match failed. Amount of input poses < model poses")
         return False
-
 
     if (len(input_poses) > len(model_poses)):
         logger.debug(" !! WARNING !! Amount of input poses > model poses")
@@ -223,7 +220,7 @@ def find_ordered_matches(model_poses,input_poses):
         start_input =0
         if model_counter >0:
             start_input =  matches[model_counter-1][0]
-        for input_counter in range(start_input,len(input_poses)):
+        for input_counter in range(0,len(input_poses)):
             input_pose = input_poses[input_counter]
             # Do single pose matching
             (result_match, error_score, input_transformation) = singleperson_match.single_person_v2(model_pose, input_pose, True)
@@ -233,50 +230,36 @@ def find_ordered_matches(model_poses,input_poses):
         if match_found == False:
             logger.debug("no match found for model %d", model_counter)
             return False
-    print input_poses[6]
-    stringList = " ".join(str(e) for e in matches)
-    logger.debug("matches found %s",stringList)
 
-
-
-    return True
+    logger.debug("matches found %s"," ".join(str(e) for e in matches))
+    return matches
 
 def multi_person_ordered(model_poses, input_poses, normalise=True):
 
-    result = find_ordered_matches(model_poses,input_poses)
-    '''
-    model_poses = order_poses(model_poses)
-    input_poses = order_poses(input_poses)
-    model_pose = model_poses[0]
-    input_counter =0
-    #find first match of poses
-    for input_pose in input_poses:
-        # Do single pose matching
-        (result_match, error_score, input_transformation) = singleperson_match.single_person_v2(model_pose, input_pose, True)
-        if not result_match:
-            input_counter = input_counter+1
-        else:
-            logger.debug("first match found on input %d", input_counter)
-            break
+    matches = find_ordered_matches(model_poses,input_poses)
+    if matches == False:
+        return MatchResult(False, error_score=0, input_transformation=None)
+    #np = np.array(matches)
+    possiblities = cartesian(matches)
 
-    total_error_score = 0;
-    model_count = 0
-    for model_pose in model_poses:
-        if input_counter < len(input_poses):
-            input_pose = input_poses[input_counter]
-            (result_match, error_score, input_transformation) = singleperson_match.single_person_v2(model_pose, input_pose, True)
-            if result_match:
-                total_error_score = total_error_score + error_score
-                input_counter = input_counter +1
-            else:
-                logger.debug("failed to match input at model %d",model_count)
-                return MatchResult(False, error_score=0, input_transformation=None)
-        else:
-            logger.debug("No more input poses left to match")
-            return MatchResult(False, error_score=0, input_transformation=None)
-        model_count = model_count +1
-    '''
-    return MatchResult(result, error_score=0, input_transformation=None)
+    return MatchResult(True, error_score=0, input_transformation=None)
+
+
+def cartesian(arrays, out=None):
+    arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+
+    n = np.prod([x.size for x in arrays])
+    if out is None:
+        out = np.zeros([n, len(arrays)], dtype=dtype)
+
+    m = n / arrays[0].size
+    out[:,0] = np.repeat(arrays[0], m)
+    if arrays[1:]:
+        cartesian(arrays[1:], out=out[0:m,1:])
+        for j in xrange(1, arrays[0].size):
+            out[j*m:(j+1)*m,1:] = out[0:m,1:]
+    return out
 
 def plot_multi_pose(model_image_name, input_image_name, list_of_all_matches):
 
@@ -286,6 +269,7 @@ def plot_multi_pose(model_image_name, input_image_name, list_of_all_matches):
             plot_match(i.model_features, i.input_features, input_transformation, model_image_name, input_image_name)
 
     return
+
 
 def plot_match(model_features, input_features, input_transform_features, model_image_name, input_image_name):
     # plot vars

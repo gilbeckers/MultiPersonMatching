@@ -54,7 +54,7 @@ def test_script():
     pose = "4"
     model = galabal+pose+"/json/"+pose+".json"
     model_features = parse_openpose_json.parse_JSON_multi_person(model)
-    input = galabal+pose+"/json/70.json"
+    input = galabal+pose+"/json/148.json"
 
     input_features = parse_openpose_json.parse_JSON_multi_person(input)
     (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
