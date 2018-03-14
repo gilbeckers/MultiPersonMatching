@@ -15,8 +15,8 @@ multipose = '/media/jochen/2FCA69D53AB1BFF41/dataset/Multipose/fotos/'
 poses = '/media/jochen/2FCA69D53AB1BFF41/dataset/Multipose/poses/'
 data = '/media/jochen/2FCA69D53AB1BFF41/dataset/Multipose/json/'
 poses = '/media/jochen/2FCA69D53AB1BFF41/dataset/Multipose/poses/'
-
-
+galabal = '/media/jochen/2FCA69D53AB1BFF41/dataset/galabal2018/json/'
+galabalfotos = '/media/jochen/2FCA69D53AB1BFF41/dataset/galabal2018/fotos/'
 #pose should look like 00100
 def find_matches_with(pose):
     if len(pose) == 5 and pose.isdigit():
@@ -37,7 +37,7 @@ def find_matches_with(pose):
                 place = place.split("json/")[1]
                 place = place+".json"
                 os.system("cp "+json+" "+poses+pose+"/json/"+place)
-                foto = json.split("_")[0];
+                foto = json.split("_keypoints")[0];
                 foto = foto.replace("json","fotos")
                 foto = foto +".jpg"
                 os.system("cp "+foto+" "+poses+pose+"/fotos/")
@@ -47,6 +47,8 @@ def find_matches_with(pose):
 
     else:
         print "find_matches_with has wrong input"
+
+
 
 def test_script():
     model = data+"00100_keypoints.json"
@@ -69,3 +71,19 @@ def check_matches(pose):
             count = count +1
             print "error at: "+json
     print str(count)+" foto's werden niet meer herkend"
+
+
+
+
+
+
+
+def rename_files():
+    i=0
+    for json in glob.iglob(galabal+"*_keypoints.json"):
+        i = i+1
+        os.system("cp "+json+" "+galabal+str(i)+".json")
+        foto = json.split("_keypoints")[0];
+        foto = foto.replace("json","fotos")
+        foto = foto +".jpg"
+        os.system("cp "+foto+" "+galabalfotos+str(i)+".jpg")

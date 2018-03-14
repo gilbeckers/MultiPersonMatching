@@ -18,10 +18,10 @@ for i in range(1,10):
     print "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     Multipose_dataset_actions.find_matches_with("0000"+str(i))
 '''
-
+'''
 logging.basicConfig(level=logging.INFO)
 Multipose_dataset_actions.find_matches_with("00100")
-
+'''
 '''
 logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.test_script()
@@ -30,3 +30,6 @@ Multipose_dataset_actions.test_script()
 logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.check_matches("00001")
 '''
+
+logging.basicConfig(level=logging.INFO)
+Multipose_dataset_actions.rename_files()
