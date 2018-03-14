@@ -31,5 +31,14 @@ logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.check_matches("00001")
 '''
 
+
+#*********************galabal*********************
+
+
+'''
 logging.basicConfig(level=logging.INFO)
-Multipose_dataset_actions.rename_files()
+Multipose_dataset_actions.find_galabal_matches("4")
+'''
+
+logging.basicConfig(level=logging.DEBUG)
+Multipose_dataset_actions.check_galabal_matches("4")
