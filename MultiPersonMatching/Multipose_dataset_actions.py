@@ -51,13 +51,13 @@ def find_matches_with(pose):
         print "find_matches_with has wrong input"
 
 def test_script():
-    model = data+"00100_keypoints.json"
+    pose = "4"
+    model = galabal+pose+"/json/"+pose+".json"
     model_features = parse_openpose_json.parse_JSON_multi_person(model)
-    input = data+"00100_keypoints.json"
+    input = galabal+pose+"/json/70.json"
 
     input_features = parse_openpose_json.parse_JSON_multi_person(input)
     (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
-
     print result
 
 def check_matches(pose):
@@ -105,6 +105,7 @@ def check_galabal_matches(pose):
     model_features = parse_openpose_json.parse_JSON_multi_person(model)
     count =0
     for json in glob.iglob(galabal+pose+"/json/*.json"):
+        logger.info(json)
         input_features = parse_openpose_json.parse_JSON_multi_person(json)
         (result, error_score, input_transform) = multiperson_match.multi_person_ordered(model_features, input_features, True)
         if result == False:

@@ -22,10 +22,8 @@ for i in range(1,10):
 logging.basicConfig(level=logging.INFO)
 Multipose_dataset_actions.find_matches_with("00100")
 '''
-'''
-logging.basicConfig(level=logging.DEBUG)
-Multipose_dataset_actions.test_script()
-'''
+
+
 '''
 logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.check_matches("00001")
@@ -35,10 +33,14 @@ Multipose_dataset_actions.check_matches("00001")
 #*********************galabal*********************
 
 
+logging.basicConfig(level=logging.DEBUG)
+Multipose_dataset_actions.test_script()
+
 '''
 logging.basicConfig(level=logging.INFO)
-Multipose_dataset_actions.find_galabal_matches("4")
+Multipose_dataset_actions.find_galabal_matches("1")
 '''
-
+'''
 logging.basicConfig(level=logging.DEBUG)
 Multipose_dataset_actions.check_galabal_matches("4")
+'''

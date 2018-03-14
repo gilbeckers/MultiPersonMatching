@@ -46,7 +46,8 @@ def find_best_match(models_poses, input_poses):
         logger.debug(" !! WARNING !! Amount of input poses > model poses")
 
     list_of_all_matches = []
-
+    model_poses = order_poses(model_poses)
+    input_poses = order_poses(input_poses)
     best_match_combo = None
     used_poses = []
 
@@ -195,10 +196,57 @@ def order_poses(poses):
                     placed = True
     return ordered
 
-def multi_person_ordered(model_poses, input_poses, normalise=True):
+def find_ordered_matches(model_poses,input_poses):
+    if(len(input_poses)== 0 or len(model_poses) == 0):
+        logger.debug(" Multi person match failed. Inputposes or modelposes are empty")
+        return False
+
+
+    if(len(input_poses) < len(model_poses)):
+        logger.debug(" Multi person match failed. Amount of input poses < model poses")
+        return False
+
+
+    if (len(input_poses) > len(model_poses)):
+        logger.debug(" !! WARNING !! Amount of input poses > model poses")
+
     model_poses = order_poses(model_poses)
     input_poses = order_poses(input_poses)
+    model_pose = model_poses[0]
+    matches = []
 
+    #find first match of poses
+    for model_counter in range(0,len(model_poses)):
+        model_pose = model_poses[model_counter]
+        matches.append([])
+        match_found = False
+        start_input =0
+        if model_counter >0:
+            start_input =  matches[model_counter-1][0]
+        for input_counter in range(start_input,len(input_poses)):
+            input_pose = input_poses[input_counter]
+            # Do single pose matching
+            (result_match, error_score, input_transformation) = singleperson_match.single_person_v2(model_pose, input_pose, True)
+            if result_match:
+                match_found = True
+                matches[model_counter].append(input_counter)
+        if match_found == False:
+            logger.debug("no match found for model %d", model_counter)
+            return False
+    print input_poses[6]
+    stringList = " ".join(str(e) for e in matches)
+    logger.debug("matches found %s",stringList)
+
+
+
+    return True
+
+def multi_person_ordered(model_poses, input_poses, normalise=True):
+
+    result = find_ordered_matches(model_poses,input_poses)
+    '''
+    model_poses = order_poses(model_poses)
+    input_poses = order_poses(input_poses)
     model_pose = model_poses[0]
     input_counter =0
     #find first match of poses
@@ -227,8 +275,8 @@ def multi_person_ordered(model_poses, input_poses, normalise=True):
             logger.debug("No more input poses left to match")
             return MatchResult(False, error_score=0, input_transformation=None)
         model_count = model_count +1
-
-    return MatchResult(True, error_score=total_error_score, input_transformation=None)
+    '''
+    return MatchResult(result, error_score=0, input_transformation=None)
 
 def plot_multi_pose(model_image_name, input_image_name, list_of_all_matches):
 

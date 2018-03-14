@@ -275,6 +275,7 @@ def single_person_v2(model_features, input_features, normalise=True):
             logger.debug("Model has more face feature then input therefore not matched")
             result_face = False
     else:
+        logger.debug("too less points for face in model so face match")
         result_face = True
 
     #handle Torso
@@ -290,6 +291,7 @@ def single_person_v2(model_features, input_features, normalise=True):
             logger.debug("Model has more Torso feature then input therefore not matched")
             result_torso = False
     else:
+        logger.debug("too less points for Torso in model so Torso match")
         result_torso = True
 
     #handle legs
@@ -303,6 +305,7 @@ def single_person_v2(model_features, input_features, normalise=True):
             logger.debug("Model has more legs feature then input therefore not matched")
             result_legs = False
     else:
+        logger.debug("too less points for legs in model so legs match")
         result_legs = True
 
     # Wrapped the transformed input in one whole pose
