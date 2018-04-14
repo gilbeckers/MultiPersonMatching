@@ -406,7 +406,7 @@ def multi_person2(model_poses, input_poses, model_image_name, input_image_name, 
 
     # Redundant, wordt enkel gebruikt voor plotten
     input_poses = np.vstack([input_poses[0], input_poses[1]])
-
+    print("-------trans: ", input_transformed_combined.shape)
     if(normalise):
         input_transformed_combined = normalising.feature_scaling(input_transformed_combined)
         model_poses = normalising.feature_scaling(model_poses)

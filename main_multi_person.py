@@ -5,16 +5,18 @@ import logging
 import prepocessing
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pose_match")
-json_data_path = 'data/json_data/'
-images_data_path = 'data/image_data/'
+json_data_path = 'json_data/'
+images_data_path = 'img/'
 
 '''
 -------------------- MULTI PERSON -------------------------------------
 '''
-model = "duo3"
-input = "duo4"
-model_json = json_data_path + model + '.json'
-input_json = json_data_path + input + '.json'
+
+
+model = "abbey4"
+input = "abbey8"
+model_json = json_data_path + model + '_keypoints.json'
+input_json = json_data_path + input + '_keypoints.json'
 model_image = images_data_path + model + '.jpg'
 input_image = images_data_path + input + '.jpg'
 model_features = parse_openpose_json.parse_JSON_multi_person(model_json)

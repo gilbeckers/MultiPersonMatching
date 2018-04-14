@@ -6,15 +6,15 @@ import pose_match
 Some plotties for a blog
 '''
 
-json_data_path = 'data/json_data/'
-images_data_path = 'data/image_data/'
+json_data_path = 'img/json_data/'
+images_data_path = 'json_data/'
 
-model = "3"
-input = "midget1"
+model = "duo21"
+input = "duo22"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 
-model_image = images_data_path + model + '.png'
+model_image = images_data_path + model + '.jpg'
 input_image = images_data_path + input + '.jpg'
 
 model_features = parse_openpose_json.parse_JSON_single_person(model_json)
