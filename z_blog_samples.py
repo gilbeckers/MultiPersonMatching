@@ -6,11 +6,11 @@ import pose_match
 Some plotties for a blog
 '''
 
-json_data_path = 'img/json_data/'
-images_data_path = 'json_data/'
+json_data_path = 'data/json_data/'
+images_data_path = 'data/image_data/'
 
-model = "duo21"
-input = "duo22"
+model = "trap7"
+input = "trap9"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '.json'
 
@@ -24,5 +24,6 @@ input_features = prepocessing.unpad(input_features)
 model_features = prepocessing.unpad(model_features)
 
 (input_trans, A ) = affine_transformation.find_transformation(model_features, input_features)
+print(input_trans)
 pose_match.plot_match(model_features, input_features, input_trans, model_image, input_image)
 

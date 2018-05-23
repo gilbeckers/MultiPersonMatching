@@ -135,6 +135,29 @@ def single_person(model_features, input_features, normalise=True):
     return result
 
 
+# De eerste naive versie van het algoritme voor sinle-person pose matching
+def single_person_zonder_split(model_features, input_features, normalise=True):
+
+    # Filter the undetected features and mirror them in the other pose
+    #(input_features_copy, model_features_copy) = prepocessing.handle_undetected_points(input_features, model_features)
+
+    if (normalise):
+        model_features = normalising.feature_scaling(model_features)
+        input_features = normalising.feature_scaling(input_features)
+
+    # Zoek transformatie om input af te beelden op model
+    # Returnt transformatie matrix + afbeelding/image van input op model
+    (input_transformed, transformation_matrix) = affine_transformation.find_transformation(model_features, input_features)
+
+
+    max_euclidean = pose_comparison.max_euclidean_distance(model_features, input_transformed)
+
+    result = MatchResult(True,
+                         error_score=max_euclidean,
+                         input_transformation=input_transformed)
+    return result
+
+
 #Plot the calculated transformation on the model image
 #And some other usefull plots for debugging
 #NO NORMALIZING IS DONE HERE BECAUSE POINTS ARE PLOTTED ON THE ORIGINAL PICTURES!
@@ -185,6 +208,46 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     ax3.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
     ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
     ax3.legend(handles=[mpatches.Patch(color='blue', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
+
+    plt.show(block=False)
+
+
+def plot_single_person_zonder_split(model_features, input_features, model_image_name, input_image_name, input_title = "input",  model_title="model",
+                       transformation_title="transformation of input + model"):
+
+    # plot vars
+    markersize = 3
+
+    #Load images
+    model_image = plt.imread(model_image_name)
+    input_image = plt.imread(input_image_name)
+
+    # Zoek transformatie om input af te beelden op model
+    # Returnt transformatie matrix + afbeelding/image van input op model
+    (input_transformed, transformation_matrix) = affine_transformation.find_transformation(model_features,
+                                                                                           input_features)
+
+
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
+    implot = ax1.imshow(model_image)
+    #ax1.set_title(model_image_name + ' (model)')
+    ax1.set_title(model_title)
+    ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    red_patch = mpatches.Patch(color='magenta', label='model')
+    ax1.legend(handles=[red_patch])
+
+    #ax2.set_title(input_image_name + ' (input)')
+    ax2.set_title(input_title)
+    ax2.imshow(input_image)
+    ax2.plot(*zip(*input_features), marker='o', color='r', ls='', ms=markersize)
+    ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
+
+    ax3.set_title(transformation_title)
+    ax3.imshow(model_image)
+    ax3.plot(*zip(*input_transformed), marker='s', color='y', ls='', ms=4, )
+    ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+
+    ax3.legend(handles=[mpatches.Patch(color='y', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
 
     plt.show(block=False)
 

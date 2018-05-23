@@ -25,18 +25,18 @@ def find_transformation(model_features, input_features):
 
     #print("inputttt: " , input_features)
 
-    input_features_zonder_nan = []
-    model_features_zonder_nan = []
-    for in_feature in input_features:
-        if (in_feature[0] == 0) and (in_feature[1] == 0): # is a (0,0) feature
-            nan_indices.append(input_counter)
-        else:
-            input_features_zonder_nan.append([in_feature[0], in_feature[1]])
-            model_features_zonder_nan.append([model_features[input_counter][0], model_features[input_counter][1]])
-        input_counter = input_counter+1
-
-    input_features = np.array(input_features_zonder_nan)
-    model_features = np.array(model_features_zonder_nan)
+    # input_features_zonder_nan = []
+    # model_features_zonder_nan = []
+    # for in_feature in input_features:
+    #     if (in_feature[0] == 0) and (in_feature[1] == 0): # is a (0,0) feature
+    #         nan_indices.append(input_counter)
+    #     else:
+    #         input_features_zonder_nan.append([in_feature[0], in_feature[1]])
+    #         model_features_zonder_nan.append([model_features[input_counter][0], model_features[input_counter][1]])
+    #     input_counter = input_counter+1
+    #
+    # input_features = np.array(input_features_zonder_nan)
+    # model_features = np.array(model_features_zonder_nan)
 
     # padden:
     # naar vorm [ x x 0 1]
