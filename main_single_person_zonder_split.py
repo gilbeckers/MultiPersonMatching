@@ -4,6 +4,8 @@ import numpy as np
 import logging
 import prepocessing
 import matplotlib.pyplot as plt
+import draw_humans
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("pose_match")
 json_data_path = 'data/json_data/'
@@ -16,16 +18,19 @@ images_data_path = 'data/image_data/'
 model = "trap7"
 input = "trap9"
 
-model = "kleuter1"
-input = "kleuter2"
-model_json = json_data_path + model + '_keypoints.json'
+model = "foto1"
+input = "kleuter8"
+model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '_keypoints.json'
 
 model_image = images_data_path + model + '.jpg'
 input_image = images_data_path + input + '.jpg'
 
+
+
 model_features = parse_openpose_json.parse_JSON_single_person(model_json)
 input_features = parse_openpose_json.parse_JSON_single_person(input_json)
+
 
 '''
 Calculate match fo real (incl. normalizing)

@@ -8,6 +8,11 @@ import matplotlib.patches as mpatches
 import logging
 import numpy as np
 import proc_do_it
+import draw_humans
+
+import matplotlib._png as png
+
+
 
 logger = logging.getLogger("pose_match")
 
@@ -162,7 +167,7 @@ def single_person_zonder_split(model_features, input_features, normalise=True):
 #And some other usefull plots for debugging
 #NO NORMALIZING IS DONE HERE BECAUSE POINTS ARE PLOTTED ON THE ORIGINAL PICTURES!
 def plot_single_person(model_features, input_features, model_image_name, input_image_name, input_title = "input",  model_title="model",
-                       transformation_title="transformation of input + model"):
+                       transformation_title="transformed input -incl. split()"):
 
     # Filter the undetected features and mirror them in the other pose
     (input_features_copy, model_features_copy) = prepocessing.handle_undetected_points(input_features, model_features)
@@ -171,8 +176,8 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     markersize = 3
 
     #Load images
-    model_image = plt.imread(model_image_name)
-    input_image = plt.imread(input_image_name)
+    # model_image = plt.imread(model_image_name)
+    # input_image = plt.imread(input_image_name)
 
     # Split features in three parts
     (model_face, model_torso, model_legs) = prepocessing.split_in_face_legs_torso(model_features_copy)
@@ -188,67 +193,99 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
                                                                                                      input_legs)
 
 
+    whole_input_transform = prepocessing.unsplit(input_transformed_face, input_transformed_torso,
+                                                 input_transformed_legs)
+
+    model_image = plt.imread(model_image_name) #png.read_png_int(model_image_name) #plt.imread(model_image_name)
+    input_image = plt.imread(input_image_name) #png.read_png_int(input_image_name) #plt.imread(input_image_name)
+
+    model_image = draw_humans.draw_humans(model_image, model_features, True)  # plt.imread(model_image_name)
+    input_image = draw_humans.draw_humans(input_image, input_features, True)  # plt.imread(input_image_name)
+
+    #input_trans_image = draw_humans.draw_square(png.read_png_int(model_image_name), model_features)
+    input_trans_image = draw_humans.draw_humans(plt.imread(model_image_name), whole_input_transform,
+                                                True)  # plt.imread(input_image_name) png.read_png_int(model_image_name)
+
+
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
     implot = ax1.imshow(model_image)
+    plt.axis('off')
     #ax1.set_title(model_image_name + ' (model)')
     ax1.set_title(model_title)
-    ax1.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
-    red_patch = mpatches.Patch(color='magenta', label='model')
-    ax1.legend(handles=[red_patch])
+    ax1.axis('off')
+    # ax1.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    # red_patch = mpatches.Patch(color='magenta', label='model')
+    # ax1.legend(handles=[red_patch])
 
     #ax2.set_title(input_image_name + ' (input)')
     ax2.set_title(input_title)
+    ax2.axis('off')
     ax2.imshow(input_image)
-    ax2.plot(*zip(*input_features_copy), marker='o', color='r', ls='', ms=markersize)
-    ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
+    # ax2.plot(*zip(*input_features_copy), marker='o', color='r', ls='', ms=markersize)
+    # ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
 
-    whole_input_transform = prepocessing.unsplit(input_transformed_face, input_transformed_torso, input_transformed_legs)
+
     ax3.set_title(transformation_title)
-    ax3.imshow(model_image)
-    ax3.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
-    ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
-    ax3.legend(handles=[mpatches.Patch(color='blue', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
+    ax3.axis('off')
+    ax3.imshow(input_trans_image)
+    # ax3.plot(*zip(*model_features_copy), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    # ax3.plot(*zip(*whole_input_transform), marker='o', color='b', ls='', ms=markersize)
+    # ax3.legend(handles=[mpatches.Patch(color='blue', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
 
+    plot_name = model_image_name.split("/")[-1] + "_" + input_image_name.split("/")[-1]
+    plt.savefig('./plots/' + plot_name + '.png', bbox_inches='tight')
     plt.show(block=False)
 
 
 def plot_single_person_zonder_split(model_features, input_features, model_image_name, input_image_name, input_title = "input",  model_title="model",
-                       transformation_title="transformation of input + model"):
+                       transformation_title="transformed input -excl. split()"): #-excl. split()
 
     # plot vars
     markersize = 3
-
-    #Load images
-    model_image = plt.imread(model_image_name)
-    input_image = plt.imread(input_image_name)
 
     # Zoek transformatie om input af te beelden op model
     # Returnt transformatie matrix + afbeelding/image van input op model
     (input_transformed, transformation_matrix) = affine_transformation.find_transformation(model_features,
                                                                                            input_features)
 
+    model_image = plt.imread(model_image_name)
+    input_image = plt.imread(input_image_name)
+    #Load images
+    model_image = draw_humans.draw_humans(model_image,model_features)#plt.imread(model_image_name)
+    input_image = draw_humans.draw_humans(input_image,input_features, True)#plt.imread(input_image_name)
+
+    input_trans_image = draw_humans.draw_square(plt.imread(model_image_name), model_features)
+    input_trans_image = draw_humans.draw_humans(input_trans_image, input_transformed, True)  # plt.imread(input_image_name)
+
+
 
     f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 6))
-    implot = ax1.imshow(model_image)
+    plt.axis('off')
+    ax1.imshow(model_image)
+    ax1.axis('off')
     #ax1.set_title(model_image_name + ' (model)')
     ax1.set_title(model_title)
-    ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
-    red_patch = mpatches.Patch(color='magenta', label='model')
-    ax1.legend(handles=[red_patch])
+    #ax1.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    # red_patch = mpatches.Patch(color='magenta', label='model')
+    # ax1.legend(handles=[red_patch])
 
     #ax2.set_title(input_image_name + ' (input)')
     ax2.set_title(input_title)
+    ax2.axis('off')
     ax2.imshow(input_image)
-    ax2.plot(*zip(*input_features), marker='o', color='r', ls='', ms=markersize)
-    ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
+    # ax2.plot(*zip(*input_features), marker='o', color='r', ls='', ms=markersize)
+    # ax2.legend(handles=[mpatches.Patch(color='red', label='input')])
 
     ax3.set_title(transformation_title)
-    ax3.imshow(model_image)
-    ax3.plot(*zip(*input_transformed), marker='s', color='y', ls='', ms=4, )
-    ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    ax3.axis('off')
+    ax3.imshow(input_trans_image)
+    # ax3.plot(*zip(*input_transformed), marker='s', color='y', ls='', ms=4, )
+    # ax3.plot(*zip(*model_features), marker='o', color='magenta', ls='', label='model', ms=markersize)  # ms = markersize
+    #
+    # ax3.legend(handles=[mpatches.Patch(color='y', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
 
-    ax3.legend(handles=[mpatches.Patch(color='y', label='transformed input'), mpatches.Patch(color='magenta', label='model')])
-
+    plot_name = model_image_name.split("/")[-1] + "_" + input_image_name.split("/")[-1]
+    plt.savefig('./plots/' + plot_name + '.png', bbox_inches='tight')
     plt.show(block=False)
 
 

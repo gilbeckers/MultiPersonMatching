@@ -2,6 +2,31 @@ import json
 import numpy
 
 
+def parse_JSON_multi_person(filename):
+    with open(filename) as data_file:
+        data = json.load(data_file)
+
+    list_of_features = []
+
+    keypoints = data["people"]
+    for k in range(0, len(keypoints)):
+        person_keypoints = keypoints[k]["pose_keypoints"]
+
+        # 18 3D coordinatenkoppels (joint-points)
+        array = numpy.zeros((18, 2))
+        arrayIndex = 0
+        for i in range(0, len(person_keypoints), 3):
+            if person_keypoints[i+2]> 0:  # 0.18 was 0.25 was 0.4
+                array[arrayIndex][0] = person_keypoints[i]
+                array[arrayIndex][1] = person_keypoints[i+1]
+            else:
+                #logger.debug("openpose certainty(%f) to low index: %d  posefile: %s", person_keypoints[i+2], arrayIndex, filename )
+                array[arrayIndex][0] = 0
+                array[arrayIndex][1] = 0
+            arrayIndex+=1
+        list_of_features.append(array)
+
+    return list_of_features
 
 '''
 Description parse_JSON_single_person(filename)

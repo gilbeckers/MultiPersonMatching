@@ -21,12 +21,14 @@ Elke entry is een coordinatenkoppel(joint-point) in 3D , z-coordinaat wordt nul 
 model = "trap7"
 input = "trap9"
 
-model = "3"
-input = "kleuter9"
+
+
+model = "foto1"
+input = "kleuter8"
 model_json = json_data_path + model + '.json'
 input_json = json_data_path + input + '_keypoints.json'
 
-model_image = images_data_path + model + '.png'
+model_image = images_data_path + model + '.jpg'
 input_image = images_data_path + input + '.jpg'
 
 model_features = parse_openpose_json.parse_JSON_single_person(model_json)
@@ -45,8 +47,8 @@ Calculate match + plot the whole thing
 '''
 # Reload features bc model_features is a immutable type  -> niet meer nodig want er wordt een copy gemaalt in single_psoe()
 # and is changed in single_pose in case of undetected bodyparts
-#model_features = parse_openpose_json.parse_JSON_single_person(model_json)
-#input_features = parse_openpose_json.parse_JSON_single_person(input_json)
+model_features = parse_openpose_json.parse_JSON_single_person(model_json)
+input_features = parse_openpose_json.parse_JSON_single_person(input_json)
 pose_match.plot_single_person(model_features, input_features, model_image, input_image)
 
 plt.show()
