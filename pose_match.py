@@ -202,8 +202,9 @@ def plot_single_person(model_features, input_features, model_image_name, input_i
     model_image = draw_humans.draw_humans(model_image, model_features, True)  # plt.imread(model_image_name)
     input_image = draw_humans.draw_humans(input_image, input_features, True)  # plt.imread(input_image_name)
 
-    #input_trans_image = draw_humans.draw_square(png.read_png_int(model_image_name), model_features)
-    input_trans_image = draw_humans.draw_humans(plt.imread(model_image_name), whole_input_transform,
+
+    input_trans_image = draw_humans.draw_square(plt.imread(model_image_name), model_features)
+    input_trans_image = draw_humans.draw_humans(input_trans_image, whole_input_transform,
                                                 True)  # plt.imread(input_image_name) png.read_png_int(model_image_name)
 
 
